@@ -1,0 +1,64 @@
+application:
+  name: checker
+  environment: development
+
+server:
+  address: ":8080"
+
+status:
+  enabled: true
+  address: ":8888"
+  profiling: true
+
+logger:
+  level: info # one of: debug, info, warn, error
+  # Format of the logs
+  format: json # one of: json, text
+
+healthcheck:
+  cluster:
+    enabled: false
+    resources:
+      - name: envoyproxy-ingress-gateway
+        url: http://envoyproxy-ingress-gateway.envoy-gateway-system.svc:8888/ready
+        checks:
+          - type: Exact #oneof: Contains, RegularExpression, Prefix, Suffix, Exact
+            source: ResponseStatus #oneof: ResponseBody, ResponseStatus
+            value: "200 OK"
+      - name: envoyproxy-ingress-certificate-gateway
+        url: http://envoyproxy-ingress-certificate-gateway.envoy-gateway-system.svc:8888/ready
+        checks:
+          - type: Exact #oneof: Contains, RegularExpression, Prefix, Suffix, Exact
+            source: ResponseStatus #oneof: ResponseBody, ResponseStatus
+            value: "200 OK"
+      - name: envoy-gateway
+        url: http://envoy-gateway.envoy-gateway-system.svc:8888/healthz
+        checks:
+          - type: Exact #oneof: Contains, RegularExpression, Prefix, Suffix, Exact
+            source: ResponseStatus #oneof: ResponseBody, ResponseStatus
+            value: "200 OK"
+  kubernetes:
+    enabled: true
+    resources:
+      - name: livez-verbose
+        url: /livez?verbose
+        checks:
+          - type: Exact #oneof: Contains, RegularExpression, Prefix, Suffix, Exact
+            source: ResponseStatus #oneof: ResponseBody, ResponseStatus
+            value: "200 OK"
+  linkerd:
+    enabled: false
+    controlPlaneNamespace: linkerd
+    dataPlaneNamespace: linkerd
+    cniNamespace: linkerd-cni
+    retryDeadline: 300
+    cniEnabled: false
+    output: short #One of: table, json, short
+    checks:
+      - kubernetes-api
+      - kubernetes-version
+      - linkerd-version
+      - linkerd-control-plane-proxy
+      - linkerd-config
+      - linkerd-identity
+
