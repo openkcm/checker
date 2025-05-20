@@ -1,6 +1,7 @@
 package healthcheck
 
 import (
+	"context"
 	"io"
 	"net/http"
 	"os"
@@ -13,7 +14,7 @@ import (
 	"github.com/openkcm/checker/internal/config"
 )
 
-func verifyKubernetesResource(rc *config.KubernetesResource) (*Response, int) {
+func verifyKubernetesResource(ctx context.Context, rc *config.KubernetesResource) (*Response, int) {
 	status := http.StatusOK
 	errors := make([]ErrorResponse, 0)
 
@@ -68,13 +69,21 @@ func verifyKubernetesResource(rc *config.KubernetesResource) (*Response, int) {
 
 	client := &http.Client{Transport: rt, Timeout: 5 * time.Second}
 
-	resp, err := client.Get(k8sConfig.Host + rc.URL)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, k8sConfig.Host+rc.URL, nil)
 	if err != nil {
 		errors = append(errors, ErrorResponse{
 			Message: err.Error(),
 			Error:   "Bad Request",
 		})
+		return response, status
+	}
 
+	resp, err := client.Do(req)
+	if err != nil {
+		errors = append(errors, ErrorResponse{
+			Message: err.Error(),
+			Error:   "Reading Response Body",
+		})
 		return response, status
 	}
 	defer func(b io.ReadCloser) {

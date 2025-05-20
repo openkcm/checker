@@ -24,7 +24,7 @@ func Do(ctx context.Context, cfg *config.Healthcheck) (map[string]any, int) {
 			go func(rc *config.ClusterResource, mu *sync.Mutex, m map[string]any) {
 				defer wg.Done()
 
-				resp, respStatus := verifyClusterResource(rc)
+				resp, respStatus := verifyClusterResource(ctx, rc)
 				mu.Lock()
 				defer mu.Unlock()
 
@@ -48,7 +48,7 @@ func Do(ctx context.Context, cfg *config.Healthcheck) (map[string]any, int) {
 			go func(rc *config.KubernetesResource, mu *sync.Mutex, m map[string]any) {
 				defer wg.Done()
 
-				resp, respStatus := verifyKubernetesResource(rc)
+				resp, respStatus := verifyKubernetesResource(ctx, rc)
 				mu.Lock()
 				defer mu.Unlock()
 				l, _ := m[k8s.Tag].([]*Response)
