@@ -6,27 +6,28 @@ import (
 	"os"
 	"time"
 
-	"github.com/openkcm/checker/internal/config"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/transport"
+
+	"github.com/openkcm/checker/internal/config"
 )
 
-func verifyKubernetesResource(rc *config.KubernetesResource) (ret Response, status int) {
-	status = http.StatusOK
+func verifyKubernetesResource(rc *config.KubernetesResource) (*Response, int) {
+	status := http.StatusOK
 	errors := make([]ErrorResponse, 0)
 
-	ret = Response{
+	response := &Response{
 		Name:   rc.Name,
 		URL:    rc.URL,
-		Status: "OK",
+		Status: OK,
 	}
 
 	defer func() {
 		if len(errors) > 0 {
 			status = http.StatusServiceUnavailable
-			ret.Errors = errors
-			ret.Status = "NOT OK"
+			response.Errors = errors
+			response.Status = NOTOK
 		}
 	}()
 
@@ -44,7 +45,7 @@ func verifyKubernetesResource(rc *config.KubernetesResource) (ret Response, stat
 			Message: err.Error(),
 			Error:   "Bad Request",
 		})
-		return
+		return response, status
 	}
 
 	transportConfig, err := k8sConfig.TransportConfig()
@@ -53,7 +54,7 @@ func verifyKubernetesResource(rc *config.KubernetesResource) (ret Response, stat
 			Message: err.Error(),
 			Error:   "Bad Request",
 		})
-		return
+		return response, status
 	}
 
 	rt, err := transport.New(transportConfig)
@@ -62,7 +63,7 @@ func verifyKubernetesResource(rc *config.KubernetesResource) (ret Response, stat
 			Message: err.Error(),
 			Error:   "Bad Request",
 		})
-		return
+		return response, status
 	}
 
 	client := &http.Client{Transport: rt, Timeout: 5 * time.Second}
@@ -74,10 +75,10 @@ func verifyKubernetesResource(rc *config.KubernetesResource) (ret Response, stat
 			Error:   "Bad Request",
 		})
 
-		return
+		return response, status
 	}
-	defer func(body io.ReadCloser) {
-		_ = body.Close()
+	defer func(b io.ReadCloser) {
+		_ = b.Close()
 	}(resp.Body)
 
 	body, err := io.ReadAll(resp.Body)
@@ -86,10 +87,10 @@ func verifyKubernetesResource(rc *config.KubernetesResource) (ret Response, stat
 			Message: err.Error(),
 			Error:   "Reading Response Body",
 		})
-		return
+		return response, status
 	}
 
-	verifyChecks(rc.Checks, body, []byte(resp.Status), errors)
+	errors = verifyChecks(rc.Checks, body, []byte(resp.Status), errors)
 
-	return
+	return response, status
 }

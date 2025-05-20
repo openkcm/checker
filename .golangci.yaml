@@ -1,7 +1,13 @@
 version: "2"
+
+run:
+  concurrency: 4
+  timeout: 10m
+
 linters:
   default: all
   disable:
+    - gomoddirectives
     - contextcheck
     - cyclop
     - depguard

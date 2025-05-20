@@ -17,7 +17,7 @@ import (
 	"github.com/openkcm/common-sdk/pkg/status"
 	"github.com/samber/oops"
 
-	"github.com/veqryn/slog-context"
+	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/openkcm/checker/internal/business"
 	"github.com/openkcm/checker/internal/config"

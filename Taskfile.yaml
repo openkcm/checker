@@ -1,6 +1,19 @@
 version: 3
 
+run: once
+method: checksum
+
+vars:
+  CODE_DIRS: '{{.ROOT_DIR}}/cmd/... {{.ROOT_DIR}}/internal/... {{.ROOT_DIR}}/test/...'
+
+includes:
+  shared:
+    taskfile: hack/common/Taskfile_library.yaml
+    flatten: true
+
 tasks:
-  build:
-    cmds:
-      - GO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o checker ./cmd/checker/main.go
+  nothing: # This is executed if 'task' is called without any arguments.
+    silent: true
+    deps:
+      - help
+

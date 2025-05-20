@@ -8,16 +8,16 @@ import (
 	"github.com/openkcm/checker/internal/config"
 )
 
-func Do(ctx context.Context, cfg *config.Healthcheck) (response map[string]any, status int) {
-	status = http.StatusOK
-	response = map[string]any{}
+func Do(ctx context.Context, cfg *config.Healthcheck) (map[string]any, int) {
+	status := http.StatusOK
+	response := map[string]any{}
 
 	wg := sync.WaitGroup{}
 
 	cluster := cfg.Cluster
 	if cluster.Enabled {
 		clusterMu := &sync.Mutex{}
-		response[cluster.Tag] = make([]Response, 0)
+		response[cluster.Tag] = make([]*Response, 0)
 
 		wg.Add(len(cluster.Resources))
 		for _, h := range cluster.Resources {
@@ -27,7 +27,9 @@ func Do(ctx context.Context, cfg *config.Healthcheck) (response map[string]any, 
 				resp, respStatus := verifyClusterResource(rc)
 				mu.Lock()
 				defer mu.Unlock()
-				m[cluster.Tag] = append(m[cluster.Tag].([]Response), resp)
+
+				l, _ := m[cluster.Tag].([]*Response)
+				m[cluster.Tag] = append(l, resp)
 
 				if respStatus != http.StatusOK {
 					status = respStatus
@@ -39,7 +41,7 @@ func Do(ctx context.Context, cfg *config.Healthcheck) (response map[string]any, 
 	k8s := cfg.Kubernetes
 	if k8s.Enabled {
 		k8Mu := &sync.Mutex{}
-		response[k8s.Tag] = make([]Response, 0)
+		response[k8s.Tag] = make([]*Response, 0)
 
 		wg.Add(len(k8s.Resources))
 		for _, h := range k8s.Resources {
@@ -49,7 +51,8 @@ func Do(ctx context.Context, cfg *config.Healthcheck) (response map[string]any, 
 				resp, respStatus := verifyKubernetesResource(rc)
 				mu.Lock()
 				defer mu.Unlock()
-				m[k8s.Tag] = append(m[k8s.Tag].([]Response), resp)
+				l, _ := m[k8s.Tag].([]*Response)
+				m[k8s.Tag] = append(l, resp)
 
 				if respStatus != http.StatusOK {
 					status = respStatus
@@ -70,5 +73,5 @@ func Do(ctx context.Context, cfg *config.Healthcheck) (response map[string]any, 
 
 	wg.Wait()
 
-	return
+	return response, status
 }

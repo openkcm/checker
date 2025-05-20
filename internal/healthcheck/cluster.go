@@ -8,20 +8,20 @@ import (
 	"github.com/openkcm/checker/internal/config"
 )
 
-func verifyClusterResource(rc *config.ClusterResource) (ret Response, status int) {
-	status = http.StatusOK
+func verifyClusterResource(rc *config.ClusterResource) (*Response, int) {
+	status := http.StatusOK
 	errors := make([]ErrorResponse, 0)
-	ret = Response{
+	response := &Response{
 		Name:   rc.Name,
 		URL:    rc.URL,
-		Status: "OK",
+		Status: OK,
 	}
 
 	defer func() {
 		if len(errors) > 0 {
 			status = http.StatusServiceUnavailable
-			ret.Errors = errors
-			ret.Status = "NOT OK"
+			response.Errors = errors
+			response.Status = NOTOK
 		}
 	}()
 
@@ -33,10 +33,10 @@ func verifyClusterResource(rc *config.ClusterResource) (ret Response, status int
 			Error:   "Bad Request",
 		})
 
-		return
+		return response, status
 	}
-	defer func(body io.ReadCloser) {
-		_ = body.Close()
+	defer func(b io.ReadCloser) {
+		_ = b.Close()
 	}(resp.Body)
 
 	body, err := io.ReadAll(resp.Body)
@@ -45,10 +45,10 @@ func verifyClusterResource(rc *config.ClusterResource) (ret Response, status int
 			Message: err.Error(),
 			Error:   "Reading Response Body",
 		})
-		return
+		return response, status
 	}
 
-	verifyChecks(rc.Checks, body, []byte(resp.Status), errors)
+	errors = verifyChecks(rc.Checks, body, []byte(resp.Status), errors)
 
-	return
+	return response, status
 }

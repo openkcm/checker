@@ -6,16 +6,18 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/openkcm/checker/internal/config"
-	"github.com/openkcm/checker/internal/healthcheck"
 	"github.com/openkcm/common-sdk/pkg/commoncfg"
 	"github.com/openkcm/common-sdk/pkg/otlp"
-	slogctx "github.com/veqryn/slog-context"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
+
+	slogctx "github.com/veqryn/slog-context"
+
+	"github.com/openkcm/checker/internal/config"
+	"github.com/openkcm/checker/internal/healthcheck"
 )
 
 func healthcheckHandlerFunc(cfg *config.Config) func(http.ResponseWriter, *http.Request) {

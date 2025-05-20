@@ -7,23 +7,25 @@ import (
 	"time"
 
 	"github.com/linkerd/linkerd2/pkg/healthcheck"
-	"github.com/openkcm/checker/internal/config"
+
 	slogctx "github.com/veqryn/slog-context"
+
+	"github.com/openkcm/checker/internal/config"
 )
 
-func verifyLinkerd(ctx context.Context, cfg *config.Linkerd) (ret Response, status int) {
-	status = http.StatusOK
+func verifyLinkerd(ctx context.Context, cfg *config.Linkerd) (*Response, int) {
+	status := http.StatusOK
 	errors := make([]ErrorResponse, 0)
 
-	ret = Response{
-		Status: "OK",
+	response := &Response{
+		Status: OK,
 	}
 
 	defer func() {
 		if len(errors) > 0 {
 			status = http.StatusServiceUnavailable
-			ret.Errors = errors
-			ret.Status = "NOT OK"
+			response.Errors = errors
+			response.Status = NOTOK
 		}
 	}()
 
@@ -67,5 +69,5 @@ func verifyLinkerd(ctx context.Context, cfg *config.Linkerd) (ret Response, stat
 		slogctx.Warn(ctx, "Linkerd check", "output", outMsg, "error", errMsg)
 	}
 
-	return
+	return response, status
 }
