@@ -26,11 +26,11 @@ jobs:
           repository: ${{ github.repository }}
           version: cat VERSION
           product: checker
-          metadataFileName: cmd/checker/build_version.json
+          metadataFileName: ${{ github.workspace }}/build_version.json
 
       - name: Print Build Version
         shell: bash
-        run: cat cmd/checker/build_version.json
+        run: cat ${{ github.workspace }}/build_version.json
 
       - name: Set up Go
         uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5

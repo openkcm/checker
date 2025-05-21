@@ -19,6 +19,7 @@ import (
 
 	slogctx "github.com/veqryn/slog-context"
 
+	root "github.com/openkcm/checker"
 	"github.com/openkcm/checker/internal/business"
 	"github.com/openkcm/checker/internal/config"
 )
@@ -44,7 +45,7 @@ func run(ctx context.Context) error {
 	}
 	defaults.SetDefaults(cfg)
 
-	err = commoncfg.UpdateConfigVersion(&cfg.BaseConfig, BuildVersion)
+	err = commoncfg.UpdateConfigVersion(&cfg.BaseConfig, root.BuildVersion)
 	if err != nil {
 		return oops.In("main").
 			Wrapf(err, "Failed to update the version configuration")
@@ -134,7 +135,7 @@ func main() {
 	flag.Parse()
 
 	if *versionFlag {
-		fmt.Println(BuildVersion)
+		fmt.Println(root.BuildVersion)
 		os.Exit(0)
 	}
 

@@ -10,7 +10,7 @@ includes:
     excludes:
       - gen:generate
     vars:
-      CODE_DIRS: '{{.ROOT_DIR}}/cmd/... {{.ROOT_DIR}}/internal/... {{.ROOT_DIR}}/test/...'
+      CODE_DIRS: '{{.ROOT_DIR}}/... {{.ROOT_DIR}}/cmd/... {{.ROOT_DIR}}/internal/... {{.ROOT_DIR}}/test/...'
       COMPONENTS: 'checker'
       REPO_URL: 'https://github.com/openmkcm/checker'
       GENERATE_DOCS_INDEX: "false"
