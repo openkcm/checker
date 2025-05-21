@@ -8,7 +8,7 @@ vars:
 
 includes:
   shared:
-    taskfile: hack/common/Taskfile_library.yaml
+    taskfile: hack/common/Taskfile_service.yaml
     flatten: true
 
 tasks:
