@@ -1,4 +1,4 @@
-name: publish
+name: Publish Resources
 on:
   push:
     tags:
