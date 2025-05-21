@@ -17,15 +17,8 @@ includes:
       ENVTEST_REQUIRED: "false"
 
 tasks:
-  list-files:
-    desc: "List all file."
-    requires:
-      vars:
-        - COMPONENTS
-    cmds:
-      - for:
-          var: COMPONENTS
-          as: COMPONENT
-        cmd: 'ls -l {{.ROOT_DIR2}}/cmd/{{.COMPONENT}}'
-
+  nothing: # This is executed if 'task' is called without any arguments.
+    silent: true
+    deps:
+      - help
 

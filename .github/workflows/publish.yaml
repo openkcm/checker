@@ -90,7 +90,7 @@ jobs:
 
       - name: List All files
         run: |
-          task list-files --verbose
+          task build:bin:list-files --verbose
 
       - name: Build and Push Images
         run: |
