@@ -82,11 +82,11 @@ jobs:
           repository: ${{ github.repository }}
           version: cat VERSION
           product: checker
-          metadataFileName: ./cmd/checker/build_version.json
+          metadataFileName: ${{ GITHUB_WORKSPACE }}/cmd/checker/build_version.json
 
       - name: Print Build Version
         shell: bash
-        run: cat ./cmd/checker/build_version.json
+        run: cat ${{ GITHUB_WORKSPACE }}/cmd/checker/build_version.json
 
       - name: Build and Push Images
         run: |
