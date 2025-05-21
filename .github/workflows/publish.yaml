@@ -88,10 +88,6 @@ jobs:
         shell: bash
         run: cat ./cmd/checker/build_version.json
 
-      - name: List All files
-        run: |
-          task build:bin:list-files --verbose
-
       - name: Build and Push Images
         run: |
           task build:img:all --verbose
