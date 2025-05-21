@@ -17,7 +17,7 @@ includes:
       ENVTEST_REQUIRED: "false"
 
 tasks:
-    list-files:
+  list-files:
     desc: "List all file."
     requires:
       vars:
