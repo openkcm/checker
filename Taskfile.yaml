@@ -7,6 +7,8 @@ includes:
   shared:
     taskfile: hack/common/Taskfile_service.yaml
     flatten: true
+    excludes:
+      - gen:generate
     vars:
       CODE_DIRS: '{{.ROOT_DIR}}/cmd/... {{.ROOT_DIR}}/internal/... {{.ROOT_DIR}}/test/...'
       COMPONENTS: 'checker'
