@@ -3,13 +3,16 @@ version: 3
 run: once
 method: checksum
 
-vars:
-  CODE_DIRS: '{{.ROOT_DIR}}/cmd/... {{.ROOT_DIR}}/internal/... {{.ROOT_DIR}}/test/...'
-
 includes:
   shared:
     taskfile: hack/common/Taskfile_service.yaml
     flatten: true
+    vars:
+      CODE_DIRS: '{{.ROOT_DIR}}/cmd/... {{.ROOT_DIR}}/internal/... {{.ROOT_DIR}}/test/...'
+      COMPONENTS: 'checker'
+      REPO_URL: 'https://github.com/openmkcm/checker'
+      GENERATE_DOCS_INDEX: "true"
+      ENVTEST_REQUIRED: "true"
 
 tasks:
   nothing: # This is executed if 'task' is called without any arguments.
