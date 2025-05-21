@@ -1,6 +1,7 @@
 package healthcheck
 
 import (
+	"context"
 	"io"
 	"net/http"
 	"time"
@@ -8,7 +9,7 @@ import (
 	"github.com/openkcm/checker/internal/config"
 )
 
-func verifyClusterResource(rc *config.ClusterResource) (*Response, int) {
+func verifyClusterResource(ctx context.Context, rc *config.ClusterResource) (*Response, int) {
 	status := http.StatusOK
 	errors := make([]ErrorResponse, 0)
 	response := &Response{
@@ -26,13 +27,22 @@ func verifyClusterResource(rc *config.ClusterResource) (*Response, int) {
 	}()
 
 	client := &http.Client{Timeout: 5 * time.Second}
-	resp, err := client.Get(rc.URL)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, rc.URL, nil)
 	if err != nil {
 		errors = append(errors, ErrorResponse{
 			Message: err.Error(),
 			Error:   "Bad Request",
 		})
+		return response, status
+	}
 
+	resp, err := client.Do(req)
+	if err != nil {
+		errors = append(errors, ErrorResponse{
+			Message: err.Error(),
+			Error:   "Reading Response Body",
+		})
 		return response, status
 	}
 	defer func(b io.ReadCloser) {
