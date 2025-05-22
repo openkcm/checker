@@ -8,7 +8,18 @@ includes:
     taskfile: hack/common/Taskfile_service.yaml
     flatten: true
     excludes:
-      - gen:generate
+    - nothing
+    vars:
+      CODE_DIRS: '{{.ROOT_DIR}}/... {{.ROOT_DIR}}/cmd/... {{.ROOT_DIR}}/internal/... {{.ROOT_DIR}}/test/...'
+      COMPONENTS: 'checker'
+      REPO_URL: 'https://github.com/openmkcm/checker'
+      GENERATE_DOCS_INDEX: "false"
+      ENVTEST_REQUIRED: "false"
+  common:
+    taskfile: hack/common/Taskfile_service.yaml
+    internal: true
+    aliases:
+    - c
     vars:
       CODE_DIRS: '{{.ROOT_DIR}}/... {{.ROOT_DIR}}/cmd/... {{.ROOT_DIR}}/internal/... {{.ROOT_DIR}}/test/...'
       COMPONENTS: 'checker'
