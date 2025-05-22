@@ -7,7 +7,7 @@ require (
 	github.com/linkerd/linkerd2 v0.0.0-00010101000000-000000000000
 	github.com/mcuadros/go-defaults v1.2.0
 	github.com/openkcm/common-sdk v0.1.0
-	github.com/samber/oops v1.17.0
+	github.com/samber/oops v1.18.0
 	github.com/veqryn/slog-context v0.8.0
 	go.opentelemetry.io/otel v1.36.0
 	go.opentelemetry.io/otel/metric v1.36.0
@@ -74,7 +74,7 @@ require (
 	github.com/prometheus/common v0.63.0 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/sagikazarmark/locafero v0.7.0 // indirect
-	github.com/samber/lo v1.49.1 // indirect
+	github.com/samber/lo v1.50.0 // indirect
 	github.com/samber/slog-formatter v1.2.0 // indirect
 	github.com/samber/slog-multi v1.4.0 // indirect
 	github.com/shopspring/decimal v1.4.0 // indirect
