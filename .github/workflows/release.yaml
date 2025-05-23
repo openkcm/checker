@@ -68,8 +68,8 @@ jobs:
           git config user.email "$AUTHOR_EMAIL"
 
 
-          git tag -d ${{ env.version }}      # delete local tag
-          git push origin :refs/tags/${{ env.version }}  # delete remote tag
+          git tag -d ${{ env.version }}  2> /dev/null    # delete local tag
+          git push origin :refs/tags/${{ env.version }} 2> /dev/null  # delete remote tag
           git tag -a ${{ env.version }} -m "Release ${{ env.version }}"
           git push origin "${{ env.version }}"
 
