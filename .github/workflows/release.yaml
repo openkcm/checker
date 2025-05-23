@@ -21,9 +21,6 @@ jobs:
           fetch-depth: 0
           submodules: recursive
 
-      - name: Fetch Tags
-        run: git fetch --tags
-
       - name: Install Task
         uses: arduino/setup-task@v2
         with:
@@ -59,14 +56,15 @@ jobs:
 
       - name: Determine Next Version
         id: set-next-version
+        if: ${{ env.SKIP != 'true' }}
         run: |
-          latest_tag=$(git describe --tags $(git rev-list --tags --max-count=1) 2>/dev/null || echo "${{ env.version }}")
-          echo "Latest tag: $latest_tag"
+          latest_version=${{ env.version }}
+          echo "Latest tag: $latest_version"
         
           # Extract version components
-          major=$(echo $latest_tag | cut -d. -f1 | tr -d 'v')
-          minor=$(echo $latest_tag | cut -d. -f2)
-          patch=$(echo $latest_tag | cut -d. -f3)
+          major=$(echo $latest_version | cut -d. -f1 | tr -d 'v')
+          minor=$(echo $latest_version | cut -d. -f2)
+          patch=$(echo $latest_version | cut -d. -f3)
         
           echo "Current version: $major.$minor.$patch"
           
@@ -75,7 +73,7 @@ jobs:
           next_version="v$major.$minor.$patch"
           echo "Next version: $next_version"
           
-          echo "version=$next_version" >> $GITHUB_ENV
+          echo "next_version=$next_version" >> $GITHUB_ENV
 
       - name: Create Git Tag with PAT
         if: ${{ env.SKIP != 'true' }}
@@ -143,9 +141,9 @@ jobs:
       - name: Push dev VERSION
         if: ${{ env.SKIP != 'true' }}
         run: |
-          task release:set-version --verbose -- "${{ env.version }}-dev"
+          task release:set-version --verbose -- "${{ env.next_version }}-dev"
           git config user.name "${{ env.AUTHOR_NAME }}"
           git config user.email "${{ env.AUTHOR_EMAIL }}"
           git add VERSION
-          git commit -m "Update VERSION to ${{ env.version }}-dev"
+          git commit -m "Update VERSION to ${{ env.next_version }}-dev"
           git push origin main
