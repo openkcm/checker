@@ -26,6 +26,8 @@ jobs:
           fetch-tags: true
           fetch-depth: 0
           submodules: recursive
+        env:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
 
       - name: Install Task
         uses: arduino/setup-task@v2
@@ -83,8 +85,6 @@ jobs:
 
       - name: Create Git tag
         if: ${{ env.SKIP != 'true' }}
-        env:
-          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           AUTHOR_NAME=$(git log -1 --pretty=format:'%an')
           AUTHOR_EMAIL=$(git log -1 --pretty=format:'%ae')
@@ -98,6 +98,8 @@ jobs:
           
           git tag -a "${{ env.version }}" -m "Release ${{ env.version }}"
           git push origin "${{ env.version }}"
+        env:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
 
       - name: Build Changelog
         id: github_release
@@ -131,7 +133,7 @@ jobs:
               ]
             }
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
 
       - name: Create GitHub release
         if: ${{ env.SKIP != 'true' }}
@@ -143,7 +145,7 @@ jobs:
           draft: true
           prerelease: false
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
 
       - name: Push dev VERSION
         if: ${{ env.SKIP != 'true' }}
@@ -154,3 +156,5 @@ jobs:
           git add VERSION
           git commit -m "Update VERSION to ${{ env.next_version }}-dev"
           git push origin main
+        env:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}

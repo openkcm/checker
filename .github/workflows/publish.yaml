@@ -29,6 +29,8 @@ jobs:
           fetch-tags: true
           fetch-depth: 0
           submodules: recursive
+        env:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
 
       - name: Install Task
         uses: arduino/setup-task@v2
