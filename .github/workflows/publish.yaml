@@ -30,7 +30,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
-          ssh-key: ${{ secrets.PUSH_PRIVATE_KEY }}
           fetch-tags: true
           fetch-depth: 0
           submodules: recursive
@@ -41,8 +40,6 @@ jobs:
         uses: arduino/setup-task@v2
         with:
           version: 3.x
-        env:
-          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
 
       - name: Read and validate VERSION
         id: version
