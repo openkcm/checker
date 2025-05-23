@@ -4,6 +4,10 @@ on:
     tags:
       - v*
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag to publish'
+        required: false
 
 permissions:
   packages: write
