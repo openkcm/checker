@@ -1,8 +1,5 @@
 version: 3
 
-run: once
-method: checksum
-
 includes:
   shared:
     taskfile: hack/common/Taskfile_service.yaml
