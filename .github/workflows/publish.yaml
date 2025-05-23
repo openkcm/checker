@@ -24,8 +24,8 @@ jobs:
         id: app-token
         uses: tibdex/github-app-token@v2
         with:
-          app_id: ${{ secrets.APP_ID }}
-          private_key: ${{ secrets.PUSH_PRIVATE_KEY }}
+          app_id: ${{ secrets.APP_PUSH_TAG_ID }}
+          private_key: ${{ secrets.APP_PUSH_TAG_PRIVATE_KEY }}
 
       - name: Checkout code
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
