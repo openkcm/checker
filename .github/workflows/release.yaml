@@ -55,7 +55,7 @@ jobs:
           fi
           echo "Tag ${{ env.version }} doesn't exists. Proceeding with release."
 
-      - name: Create Git tag
+      - name: Create Git Tag with PAT
         if: ${{ env.SKIP != 'true' }}
         run: |
           AUTHOR_NAME=$(git log -1 --pretty=format:'%an')
@@ -69,6 +69,7 @@ jobs:
           git config user.email "$AUTHOR_EMAIL"
 
           git tag -a "${{ env.version }}" -m "Release ${{ env.version }}"
+          git remote set-url origin https://x-access-token:${{ secrets.PAT_PUSH }}@github.com/${{ github.repository }}
           git push origin "${{ env.version }}"
 
       - name: Build Changelog
