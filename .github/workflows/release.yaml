@@ -21,6 +21,11 @@ jobs:
           fetch-depth: 0
           submodules: recursive
 
+      - name: Install Task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+
       - name: Read and validate VERSION
         id: version
         run: |
