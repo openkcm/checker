@@ -33,6 +33,8 @@ jobs:
         uses: arduino/setup-task@v2
         with:
           version: 3.x
+        env:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
 
       - name: Read and validate VERSION
         id: version
