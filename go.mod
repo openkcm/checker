@@ -4,7 +4,7 @@ go 1.24.3
 
 require (
 	github.com/google/uuid v1.6.0
-	github.com/linkerd/linkerd2 v0.0.0-00010101000000-000000000000
+	github.com/linkerd/linkerd2 v0.0.0-20250212165942-faa3f617eef5
 	github.com/mcuadros/go-defaults v1.2.0
 	github.com/openkcm/common-sdk v0.1.0
 	github.com/samber/oops v1.18.0

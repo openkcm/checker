@@ -21,6 +21,9 @@ jobs:
           fetch-depth: 0
           submodules: recursive
 
+      - name: Fetch Tags
+        run: git fetch --tags
+
       - name: Install Task
         uses: arduino/setup-task@v2
         with:
@@ -53,6 +56,37 @@ jobs:
             exit 0
           fi
           echo "Tag ${{ env.version }} doesn't exists. Proceeding with release."
+
+      - name: Determine Next Version
+        id: set-next-version
+        run: |
+          latest_tag=$(git describe --tags $(git rev-list --tags --max-count=1) 2>/dev/null || echo "${{ env.version }}")
+          echo "Latest tag: $latest_tag"
+        
+          # Extract version components
+          major=$(echo $latest_tag | cut -d. -f1 | tr -d 'v')
+          minor=$(echo $latest_tag | cut -d. -f2)
+          patch=$(echo $latest_tag | cut -d. -f3)
+        
+          echo "Current version: $major.$minor.$patch"
+        
+          if [[ $GITHUB_EVENT_NAME == "pull_request" ]]; then
+            if jq -r '.pull_request.labels[].name' $GITHUB_EVENT_PATH | grep -q "major"; then
+              major=$((major + 1))
+              minor=0
+              patch=0
+            elif jq -r '.pull_request.labels[].name' $GITHUB_EVENT_PATH | grep -q "minor"; then
+              minor=$((minor + 1))
+              patch=0
+            else
+              patch=$((patch + 1))
+            fi
+          fi
+        
+          next_version="v$major.$minor.$patch"
+          echo "Next version: $next_version"
+          
+          echo "version=$next_version" >> $GITHUB_ENV
 
       - name: Create Git Tag with PAT
         if: ${{ env.SKIP != 'true' }}
