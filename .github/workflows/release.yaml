@@ -67,10 +67,7 @@ jobs:
           git config user.name "$AUTHOR_NAME"
           git config user.email "$AUTHOR_EMAIL"
 
-
-          git tag -d ${{ env.version }}  2> /dev/null    # delete local tag
-          git push origin :refs/tags/${{ env.version }} 2> /dev/null  # delete remote tag
-          git tag -a ${{ env.version }} -m "Release ${{ env.version }}"
+          git tag -a "${{ env.version }}" -m "Release ${{ env.version }}"
           git push origin "${{ env.version }}"
 
       - name: Build Changelog
