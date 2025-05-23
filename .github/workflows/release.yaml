@@ -69,19 +69,8 @@ jobs:
           patch=$(echo $latest_tag | cut -d. -f3)
         
           echo "Current version: $major.$minor.$patch"
-        
-          if [[ $GITHUB_EVENT_NAME == "pull_request" ]]; then
-            if jq -r '.pull_request.labels[].name' $GITHUB_EVENT_PATH | grep -q "major"; then
-              major=$((major + 1))
-              minor=0
-              patch=0
-            elif jq -r '.pull_request.labels[].name' $GITHUB_EVENT_PATH | grep -q "minor"; then
-              minor=$((minor + 1))
-              patch=0
-            else
-              patch=$((patch + 1))
-            fi
-          fi
+          
+          patch=$((patch + 1))
         
           next_version="v$major.$minor.$patch"
           echo "Next version: $next_version"
