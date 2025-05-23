@@ -83,6 +83,8 @@ jobs:
 
       - name: Create Git tag
         if: ${{ env.SKIP != 'true' }}
+        env:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           AUTHOR_NAME=$(git log -1 --pretty=format:'%an')
           AUTHOR_EMAIL=$(git log -1 --pretty=format:'%ae')
