@@ -8,6 +8,7 @@ on:
 
 permissions:
   packages: write
+  contents: read
 
 env:
   OCI_URL: ghcr.io/openkcm
