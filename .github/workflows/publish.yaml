@@ -16,10 +16,16 @@ jobs:
     name: Release version
     runs-on: ubuntu-24.04
     steps:
+      - name: Generate token from GitHub App
+        id: app-token
+        uses: tibdex/github-app-token@v2
+        with:
+          app_id: ${{ secrets.APP_ID }}
+          private_key: ${{ secrets.PUSH_PRIVATE_KEY }}
+
       - name: Checkout code
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
-          ssh-key: ${{ secrets.PUSH_KEY }}
           fetch-tags: true
           fetch-depth: 0
           submodules: recursive
