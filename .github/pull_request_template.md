@@ -1,20 +1,20 @@
-**What this PR does / why we need it**:
+<!-- Format of PR Title: <category>: <description>
+Possible values:
+- category:       breaking|feature|doc|build|chore|ci|docs|feature|fix|perf|refactor|revert|style|test
+- description:   <short description of the PR>
+-->
 
-**Which issue(s) this PR fixes**:
-Fixes #
+**What this PR does / why we need it**:
+``` Detiled description of PR; ; If no description, remove the block.
+
+```
 
 **Special notes for your reviewer**:
+``` If no notes, remove the block.
+
+```
 
 **Release note**:
-<!--  Write your release note:
-1. Enter your release note in the below block.
-2. If no release note is required, just write "NONE" within the block.
-
-Format of block header: <category> <target_group>
-Possible values:
-- category:       breaking|feature|bugfix|doc|other
-- target_group:   user|operator|developer|dependency
--->
-```feature user
+``` Release notes; If no release note is required, just write "NONE" within the block.
 
 ```
