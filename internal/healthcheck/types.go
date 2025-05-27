@@ -1,5 +1,8 @@
 package healthcheck
 
+const OK = "OK"
+const NOTOK = "NOT OK"
+
 type Response struct {
 	Name   string          `json:"name,omitempty"`
 	URL    string          `json:"url,omitempty"`

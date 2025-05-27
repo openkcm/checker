@@ -30,12 +30,24 @@ type Config struct {
 
 	Server      Server      `yaml:"server"`
 	Healthcheck Healthcheck `yaml:"healthcheck"`
+	Versions    Versions    `yaml:"versions"`
 }
 
 type Server struct {
 	// HTTP.Address is the address to listen on for HTTP requests
 	Address         string        `yaml:"address" default:":8080"`
 	ShutdownTimeout time.Duration `yaml:"shutdownTimeout" default:"5s"`
+}
+
+type Versions struct {
+	Enabled   bool               `yaml:"enabled" default:"false"`
+	Endpoint  string             `yaml:"endpoint" default:"/versions"`
+	Resources []*ServiceResource `yaml:"resources" default:"[]"`
+}
+
+type ServiceResource struct {
+	Name string `yaml:"name"`
+	URL  string `yaml:"url"`
 }
 
 type Healthcheck struct {
