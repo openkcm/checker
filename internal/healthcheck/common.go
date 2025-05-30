@@ -7,9 +7,6 @@ import (
 	"github.com/openkcm/checker/internal/config"
 )
 
-const OK = "OK"
-const NOTOK = "NOT OK"
-
 func verifyChecks(checks []config.Check, body, status []byte, errors []ErrorResponse) []ErrorResponse {
 	errorsAlias := errors
 	for _, check := range checks {

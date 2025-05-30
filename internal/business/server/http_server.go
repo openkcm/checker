@@ -18,6 +18,9 @@ func registerHandlers(mux *http.ServeMux, cfg *config.Config) {
 	if cfg.Healthcheck.Enabled {
 		mux.HandleFunc(cfg.Healthcheck.Endpoint, healthcheckHandlerFunc(cfg))
 	}
+	if cfg.Versions.Enabled {
+		mux.HandleFunc(cfg.Versions.Endpoint, versionsHandlerFunc(cfg))
+	}
 }
 
 // createStatusServer creates a status http server using the given config

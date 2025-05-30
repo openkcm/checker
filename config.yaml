@@ -15,6 +15,13 @@ logger:
   # Format of the logs
   format: json # one of: json, text
 
+versions:
+  enabled: false
+  endpoint: /versions
+  resources:
+    - name: cmk
+      url: http://cmk.services.svc.cluster.local:8888/version
+
 healthcheck:
   cluster:
     enabled: false
