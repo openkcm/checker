@@ -7,7 +7,7 @@ type Response struct {
 	URL    string         `json:"url,omitempty"`
 	Error  *ErrorResponse `json:"error,omitempty"`
 	Status string         `json:"status,omitempty"`
-	Result any            `json:"body,omitempty"`
+	Result any            `json:"result,omitempty"`
 }
 
 type ErrorResponse struct {
