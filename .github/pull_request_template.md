@@ -5,7 +5,7 @@ Possible values:
 -->
 
 **What this PR does / why we need it**:
-``` Detiled description of PR; ; If no description, remove the block.
+``` Detailed description of PR; If no description, remove the block.
 
 ```
 
