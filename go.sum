@@ -168,8 +168,8 @@ github.com/onsi/ginkgo/v2 v2.21.0 h1:7rg/4f3rB88pb5obDgNZrNHrQ4e6WpjonchcpuBRnZM
 github.com/onsi/ginkgo/v2 v2.21.0/go.mod h1:7Du3c42kxCUegi0IImZ1wUQzMBVecgIHjR1C+NkhLQo=
 github.com/onsi/gomega v1.35.1 h1:Cwbd75ZBPxFSuZ6T+rN/WCb/gOc6YgFBXLlZLhC7Ds4=
 github.com/onsi/gomega v1.35.1/go.mod h1:PvZbdDc8J6XJEpDK4HCuRBm8a6Fzp9/DmhC9C7yFlog=
-github.com/openkcm/common-sdk v0.1.0 h1:fZaOknbc5G/kUZskIo8jZrv16jHoPjBwwZih2nKbjTU=
-github.com/openkcm/common-sdk v0.1.0/go.mod h1:ez1Ob5YPAwOqphLgQ4L+MARfvuR0CzJC5uc/DPO3QMc=
+github.com/openkcm/common-sdk v0.2.0 h1:aXY8TRU0jNBbd7Mux7ovubPdx5jUT7xeaUTWt8XvCV0=
+github.com/openkcm/common-sdk v0.2.0/go.mod h1:ez1Ob5YPAwOqphLgQ4L+MARfvuR0CzJC5uc/DPO3QMc=
 github.com/pborman/getopt v0.0.0-20170112200414-7148bc3a4c30/go.mod h1:85jBQOZwpVEaDAr341tbn15RS4fCAsIst0qp7i8ex1o=
 github.com/pelletier/go-toml/v2 v2.2.3 h1:YmeHyLY8mFWbdkNWwpr+qIL2bEqT0o95WSdkNHvL12M=
 github.com/pelletier/go-toml/v2 v2.2.3/go.mod h1:MfCQTFTvCcUyyvvwm1+G6H/jORL20Xlb6rzQu9GuUkc=
