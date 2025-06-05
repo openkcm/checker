@@ -4,14 +4,22 @@
 # https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
 version: 2
 updates:
-  # Create PRs for github.com/gardener/gardener dependency updates
   - package-ecosystem: gomod
     directory: /
+    reviewers:
+      - "openkcm/go-maintainers"
     schedule:
       interval: daily
     open-pull-requests-limit: 5
-  # Create PRs for golang version updates
   - package-ecosystem: docker
     directory: /
+    reviewers:
+      - "openkcm/go-maintainers"
     schedule:
       interval: daily
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    reviewers:
+      - "openkcm/go-maintainers"
+    schedule:
+      interval: "daily"
