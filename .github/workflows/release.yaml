@@ -6,8 +6,9 @@ on:
       - main
 
 permissions:
-  contents: write # we need this to be able to push tags
   actions: write
+  contents: write
+  pull-requests: write
 
 jobs:
   release_tag:
@@ -79,9 +80,11 @@ jobs:
           patch=$((patch + 1))
         
           next_version="v$major.$minor.$patch"
+          nacked_next_version="$major.$minor.$patch"
           echo "Next version: $next_version"
           
           echo "next_version=$next_version" >> $GITHUB_ENV
+          echo "nacked_next_version=$nacked_next_version" >> $GITHUB_ENV
 
       - name: Create Git tag
         if: ${{ env.SKIP != 'true' }}
@@ -147,12 +150,30 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Push dev VERSION
+      - name: Update to the next version
         if: ${{ env.SKIP != 'true' }}
         run: |
-          task release:set-version --verbose -- "${{ env.next_version }}-dev"
-          git config user.name "${{ env.AUTHOR_NAME }}"
-          git config user.email "${{ env.AUTHOR_EMAIL }}"
-          git add VERSION
-          git commit -m "Update VERSION to ${{ env.next_version }}-dev"
-          git push origin main
+          task release:update-repo-version --verbose -- "${{ env.next_version }}-dev"
+#          task release:update-charts-version --verbose -- "${{ env.nacked_next_version }}"
+#          task release:update-charts-appVersion --verbose -- "${{ env.next_version }}"
+#          task release:update-charts-values-image-tag --verbose -- "${{ env.next_version }}"
+
+      - name: Create pr for next version
+        if: ${{ env.SKIP != 'true' }}
+        id: cpr
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ steps.generate-token.outputs.token }}
+          commit-message: "chore: update to ${{ env.next_version }}-dev version"
+          committer: "GitHub Actions <github-actions[bot]@users.noreply.github.com>"
+          author: "${{ env.AUTHOR_NAME }} <${{ env.AUTHOR_EMAIL }}>"
+          signoff: true
+          base: main
+          branch: dev/${{ env.next_version }}
+          delete-branch: true
+          title: "chore: update to ${{ env.next_version }}-dev version"
+          body: "This PR was created automatically by GitHub Actions."
+          labels: |
+            next-dev-version
+            automated pr
+          draft: false
