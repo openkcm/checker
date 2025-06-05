@@ -151,7 +151,7 @@ jobs:
       - name: Generate SBOM
         if: ${{ env.SKIP != 'true' }}
         run: |
-          task cyclonedxgomod:app --verbose
+          task cyclonedxgomod:mod-application --verbose
 
       - name: Create GitHub release
         if: ${{ env.SKIP != 'true' }}
@@ -160,7 +160,7 @@ jobs:
           tag_name: ${{ env.version }}
           name: Release ${{ env.version }}
           body: ${{steps.github_release.outputs.changelog}}
-          files: "*-app.sbom.json"
+          files: "sbom.json"
           draft: true
           prerelease: false
         env:
@@ -170,8 +170,7 @@ jobs:
         if: ${{ env.SKIP != 'true' }}
         run: |
           echo "Removing the following SBOM files:"
-          ls -1 *-app.sbom.json || echo "No files found"
-          rm -f *-app.sbom.json
+          rm -f sbom.json
           rm -rf bin/
 
       - name: Create pr for next version
