@@ -32,10 +32,35 @@ jobs:
           fetch-depth: 0
           submodules: recursive
 
+      - name: Extract repository name
+        id: repo
+        run: |
+          echo "repo_name=$(basename "$GITHUB_REPOSITORY")" >> $GITHUB_ENV
+
+      - name: Generate Build Version
+        uses: hashicorp/actions-generate-metadata@f6f1ca9cededa05d841a58d171064faf3de8ec74 #main
+        id: execute
+        with:
+          repositoryOwner: ${{ github.repository_owner }}
+          repository: ${{ github.repository }}
+          version: cat VERSION
+          product: ${{ env.repo_name }}
+          metadataFileName: ${{ github.workspace }}/build_version.json
+
+      - name: Print Build Version
+        shell: bash
+        run: cat ${{ github.workspace }}/build_version.json
+
+      - name: Checkout build (taskfiles) repo
+        run: |
+          git clone https://github.com/openkcm/build.git ./hack/common
+
       - name: Install Task
         uses: arduino/setup-task@b91d5d2c96a56797b48ac1e0e89220bf64044611 #v2.0.0
         with:
           version: 3.x
+        env:
+          GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
 
       - name: Read and validate VERSION
         id: version
@@ -151,7 +176,7 @@ jobs:
       - name: Generate SBOM
         if: ${{ env.SKIP != 'true' }}
         run: |
-          task cyclonedxgomod:mod-application --verbose
+          task cyclonedxgomod:app --verbose
 
       - name: Create GitHub release
         if: ${{ env.SKIP != 'true' }}
@@ -160,7 +185,7 @@ jobs:
           tag_name: ${{ env.version }}
           name: Release ${{ env.version }}
           body: ${{steps.github_release.outputs.changelog}}
-          files: "sbom.json"
+          files: "*sbom.json"
           draft: true
           prerelease: false
         env:
@@ -169,9 +194,8 @@ jobs:
       - name: Clean up SBOM files
         if: ${{ env.SKIP != 'true' }}
         run: |
-          echo "Removing the following SBOM files:"
-          rm -f sbom.json
-          rm -rf bin/
+          rm -f *sbom.json
+          rm -rf hack
 
       - name: Create pr for next version
         if: ${{ env.SKIP != 'true' }}
