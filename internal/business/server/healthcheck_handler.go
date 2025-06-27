@@ -77,7 +77,7 @@ func healthcheckHandlerFunc(cfg *config.Config) func(http.ResponseWriter, *http.
 		response, status = healthcheck.Do(ctx, &cfg.Healthcheck)
 
 		slogctx.Info(ctx, "Finished healthcheck request",
-			"durationMs", time.Since(requestStartTime)/time.Millisecond)
+			"durationMs", time.Since(requestStartTime)/time.Millisecond, "response", response, "status", status)
 		// End Business Logic
 	}
 }
