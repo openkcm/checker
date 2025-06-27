@@ -12,7 +12,7 @@ require (
 	go.opentelemetry.io/otel v1.37.0
 	go.opentelemetry.io/otel/metric v1.37.0
 	go.opentelemetry.io/otel/trace v1.37.0
-	k8s.io/client-go v0.33.1
+	k8s.io/client-go v0.33.2
 )
 
 replace github.com/linkerd/linkerd2 => github.com/linkerd/linkerd2 v0.5.1-0.20250512184448-bc84368d859f
