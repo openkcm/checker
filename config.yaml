@@ -23,8 +23,10 @@ versions:
       url: http://cmk.services.svc.cluster.local:8888/version
 
 healthcheck:
+  endpoint: "/healthz"
+  enabled: true
   cluster:
-    enabled: false
+    enabled: true
     resources:
       - name: envoyproxy-ingress-gateway
         url: http://envoyproxy-ingress-gateway.envoy-gateway-system.svc:8888/ready

@@ -15,7 +15,6 @@ import (
 )
 
 func verifyKubernetesResource(ctx context.Context, rc *config.KubernetesResource) (*Response, int) {
-	status := http.StatusOK
 	errors := make([]ErrorResponse, 0)
 
 	response := &Response{
@@ -23,14 +22,6 @@ func verifyKubernetesResource(ctx context.Context, rc *config.KubernetesResource
 		URL:    rc.URL,
 		Status: OK,
 	}
-
-	defer func() {
-		if len(errors) > 0 {
-			status = http.StatusServiceUnavailable
-			response.Errors = errors
-			response.Status = NOTOK
-		}
-	}()
 
 	var k8sConfig *rest.Config
 	var err error
@@ -46,7 +37,9 @@ func verifyKubernetesResource(ctx context.Context, rc *config.KubernetesResource
 			Message: err.Error(),
 			Error:   "Bad Request",
 		})
-		return response, status
+		response.Errors = errors
+		response.Status = NOTOK
+		return response, http.StatusServiceUnavailable
 	}
 
 	transportConfig, err := k8sConfig.TransportConfig()
@@ -55,7 +48,9 @@ func verifyKubernetesResource(ctx context.Context, rc *config.KubernetesResource
 			Message: err.Error(),
 			Error:   "Bad Request",
 		})
-		return response, status
+		response.Errors = errors
+		response.Status = NOTOK
+		return response, http.StatusServiceUnavailable
 	}
 
 	rt, err := transport.New(transportConfig)
@@ -64,7 +59,9 @@ func verifyKubernetesResource(ctx context.Context, rc *config.KubernetesResource
 			Message: err.Error(),
 			Error:   "Bad Request",
 		})
-		return response, status
+		response.Errors = errors
+		response.Status = NOTOK
+		return response, http.StatusServiceUnavailable
 	}
 
 	client := &http.Client{Transport: rt, Timeout: 5 * time.Second}
@@ -75,7 +72,9 @@ func verifyKubernetesResource(ctx context.Context, rc *config.KubernetesResource
 			Message: err.Error(),
 			Error:   "Bad Request",
 		})
-		return response, status
+		response.Errors = errors
+		response.Status = NOTOK
+		return response, http.StatusServiceUnavailable
 	}
 
 	resp, err := client.Do(req)
@@ -84,7 +83,9 @@ func verifyKubernetesResource(ctx context.Context, rc *config.KubernetesResource
 			Message: err.Error(),
 			Error:   "Reading Response Body",
 		})
-		return response, status
+		response.Errors = errors
+		response.Status = NOTOK
+		return response, http.StatusServiceUnavailable
 	}
 	defer func(b io.ReadCloser) {
 		_ = b.Close()
@@ -96,10 +97,17 @@ func verifyKubernetesResource(ctx context.Context, rc *config.KubernetesResource
 			Message: err.Error(),
 			Error:   "Reading Response Body",
 		})
-		return response, status
+		response.Errors = errors
+		response.Status = NOTOK
+		return response, http.StatusServiceUnavailable
 	}
 
+	status := http.StatusOK
 	errors = verifyChecks(rc.Checks, body, []byte(resp.Status), errors)
-
+	if len(errors) > 0 {
+		status = http.StatusServiceUnavailable
+		response.Errors = errors
+		response.Status = NOTOK
+	}
 	return response, status
 }
