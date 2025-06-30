@@ -14,20 +14,11 @@ import (
 )
 
 func verifyLinkerd(ctx context.Context, cfg *config.Linkerd) (*Response, int) {
-	status := http.StatusOK
 	errors := make([]ErrorResponse, 0)
 
 	response := &Response{
 		Status: OK,
 	}
-
-	defer func() {
-		if len(errors) > 0 {
-			status = http.StatusServiceUnavailable
-			response.Errors = errors
-			response.Status = NOTOK
-		}
-	}()
 
 	checks := make([]healthcheck.CategoryID, 0)
 
@@ -67,6 +58,13 @@ func verifyLinkerd(ctx context.Context, cfg *config.Linkerd) (*Response, int) {
 	}
 	if !success {
 		slogctx.Warn(ctx, "Linkerd check", "output", outMsg, "error", errMsg)
+	}
+
+	status := http.StatusOK
+	if len(errors) > 0 {
+		status = http.StatusServiceUnavailable
+		response.Errors = errors
+		response.Status = NOTOK
 	}
 
 	return response, status

@@ -8,8 +8,12 @@ import (
 	"github.com/openkcm/checker/internal/config"
 )
 
+func ref(v int) *int {
+	return &v
+}
+
 func Do(ctx context.Context, cfg *config.Healthcheck) (map[string]any, int) {
-	status := http.StatusOK
+	status := ref(http.StatusOK)
 	response := map[string]any{}
 
 	wg := sync.WaitGroup{}
@@ -21,7 +25,7 @@ func Do(ctx context.Context, cfg *config.Healthcheck) (map[string]any, int) {
 
 		wg.Add(len(cluster.Resources))
 		for _, h := range cluster.Resources {
-			go func(rc *config.ClusterResource, mu *sync.Mutex, m map[string]any) {
+			go func(rc *config.ClusterResource, mu *sync.Mutex, m map[string]any, status *int) {
 				defer wg.Done()
 
 				resp, respStatus := verifyClusterResource(ctx, rc)
@@ -32,9 +36,9 @@ func Do(ctx context.Context, cfg *config.Healthcheck) (map[string]any, int) {
 				m[cluster.Tag] = append(l, resp)
 
 				if respStatus != http.StatusOK {
-					status = respStatus
+					status = &respStatus
 				}
-			}(&h, clusterMu, response)
+			}(&h, clusterMu, response, status)
 		}
 	}
 
@@ -55,7 +59,7 @@ func Do(ctx context.Context, cfg *config.Healthcheck) (map[string]any, int) {
 				m[k8s.Tag] = append(l, resp)
 
 				if respStatus != http.StatusOK {
-					status = respStatus
+					status = &respStatus
 				}
 			}(&h, k8Mu, response)
 		}
@@ -67,11 +71,11 @@ func Do(ctx context.Context, cfg *config.Healthcheck) (map[string]any, int) {
 		response[linkerd.Tag] = resp
 
 		if respStatus != http.StatusOK {
-			status = respStatus
+			status = &respStatus
 		}
 	}
 
 	wg.Wait()
 
-	return response, status
+	return response, *status
 }
