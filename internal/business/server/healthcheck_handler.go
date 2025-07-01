@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/openkcm/checker/internal/healthcheck"
 	"github.com/openkcm/common-sdk/pkg/commoncfg"
 	"github.com/openkcm/common-sdk/pkg/otlp"
 	"go.opentelemetry.io/otel"
@@ -17,10 +18,9 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/openkcm/checker/internal/config"
-	"github.com/openkcm/checker/internal/healthcheck"
 )
 
-func healthcheckHandlerFunc(cfg *config.Config) func(http.ResponseWriter, *http.Request) {
+func healthcheckHandlerFunc(cfg *config.Config, ch *healthcheck.CachedResponses) func(http.ResponseWriter, *http.Request) {
 	traceAttrs := otlp.CreateAttributesFrom(cfg.Application,
 		attribute.String(commoncfg.AttrOperation, "healthcheck"),
 	)
@@ -66,18 +66,11 @@ func healthcheckHandlerFunc(cfg *config.Config) func(http.ResponseWriter, *http.
 
 		w.Header().Set("Content-Type", "application/json")
 
-		status := http.StatusOK
-		response := map[string]any{}
-
-		defer func() {
-			w.WriteHeader(status)
-			_ = json.NewEncoder(w).Encode(response)
-		}()
-
-		response, status = healthcheck.Do(ctx, &cfg.Healthcheck)
+		w.WriteHeader(ch.Status())
+		_ = json.NewEncoder(w).Encode(ch.Response())
 
 		slogctx.Info(ctx, "Finished healthcheck request",
-			"durationMs", time.Since(requestStartTime)/time.Millisecond, "response", response, "status", status)
+			"durationMs", time.Since(requestStartTime)/time.Millisecond, "response", ch.Response(), "status", ch.Status())
 		// End Business Logic
 	}
 }

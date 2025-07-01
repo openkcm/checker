@@ -6,6 +6,7 @@ import (
 	"net"
 	"net/http"
 
+	"github.com/openkcm/checker/internal/healthcheck"
 	"github.com/samber/oops"
 
 	slogctx "github.com/veqryn/slog-context"
@@ -14,9 +15,9 @@ import (
 )
 
 // registerHandlers registers the default http handlers for the status server
-func registerHandlers(mux *http.ServeMux, cfg *config.Config) {
+func registerHandlers(mux *http.ServeMux, cfg *config.Config, cache *healthcheck.CachedResponses) {
 	if cfg.Healthcheck.Enabled {
-		mux.HandleFunc(cfg.Healthcheck.Endpoint, healthcheckHandlerFunc(cfg))
+		mux.HandleFunc(cfg.Healthcheck.Endpoint, healthcheckHandlerFunc(cfg, cache))
 	}
 	if cfg.Versions.Enabled {
 		mux.HandleFunc(cfg.Versions.Endpoint, versionsHandlerFunc(cfg))
@@ -26,7 +27,9 @@ func registerHandlers(mux *http.ServeMux, cfg *config.Config) {
 // createStatusServer creates a status http server using the given config
 func createHTTPServer(ctx context.Context, cfg *config.Config) *http.Server {
 	mux := http.NewServeMux()
-	registerHandlers(mux, cfg)
+
+	cache := healthcheck.NewCachedResponses(ctx, &cfg.Healthcheck)
+	registerHandlers(mux, cfg, cache)
 
 	slogctx.Info(ctx, "Creating HTTP server", "address", cfg.Server.Address)
 
