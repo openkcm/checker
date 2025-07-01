@@ -6,12 +6,12 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/openkcm/checker/internal/healthcheck"
 	"github.com/samber/oops"
 
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/openkcm/checker/internal/config"
+	"github.com/openkcm/checker/internal/healthcheck"
 )
 
 // registerHandlers registers the default http handlers for the status server

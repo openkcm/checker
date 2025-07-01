@@ -9,7 +9,7 @@ import (
 )
 
 type CachedResponses struct {
-	mu sync.Mutex
+	mu sync.RWMutex
 
 	status   int
 	response map[string]any
@@ -27,9 +27,22 @@ func NewCachedResponses(ctx context.Context, cfg *config.Healthcheck) *CachedRes
 				time.Sleep(cfg.RefreshDuration)
 			}
 		}
-
 	}(cfg, cache)
 	return cache
+}
+
+func (ch *CachedResponses) Status() int {
+	ch.mu.RLock()
+	defer ch.mu.RUnlock()
+
+	return ch.status
+}
+
+func (ch *CachedResponses) Response() map[string]any {
+	ch.mu.RLock()
+	defer ch.mu.RUnlock()
+
+	return ch.response
 }
 
 func (ch *CachedResponses) refresh(ctx context.Context, cfg *config.Healthcheck) {
@@ -39,18 +52,4 @@ func (ch *CachedResponses) refresh(ctx context.Context, cfg *config.Healthcheck)
 
 	ch.status = status
 	ch.response = response
-}
-
-func (ch *CachedResponses) Status() int {
-	ch.mu.Lock()
-	defer ch.mu.Unlock()
-
-	return ch.status
-}
-
-func (ch *CachedResponses) Response() map[string]any {
-	ch.mu.Lock()
-	defer ch.mu.Unlock()
-
-	return ch.response
 }
