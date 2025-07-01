@@ -25,6 +25,7 @@ versions:
 healthcheck:
   endpoint: "/healthz"
   enabled: true
+  refreshDuration: 10s
   cluster:
     enabled: true
     resources:

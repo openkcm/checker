@@ -51,11 +51,12 @@ type ServiceResource struct {
 }
 
 type Healthcheck struct {
-	Enabled    bool       `yaml:"enabled" default:"false"`
-	Endpoint   string     `yaml:"endpoint" default:"/healthz"`
-	Cluster    Cluster    `yaml:"cluster"`
-	Kubernetes Kubernetes `yaml:"kubernetes"`
-	Linkerd    Linkerd    `yaml:"linkerd"`
+	Enabled         bool          `yaml:"enabled" default:"false"`
+	Endpoint        string        `yaml:"endpoint" default:"/healthz"`
+	RefreshDuration time.Duration `yaml:"refreshDuration" default:"5s"`
+	Cluster         Cluster       `yaml:"cluster"`
+	Kubernetes      Kubernetes    `yaml:"kubernetes"`
+	Linkerd         Linkerd       `yaml:"linkerd"`
 }
 
 type Cluster struct {
