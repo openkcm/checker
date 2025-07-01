@@ -18,13 +18,15 @@ type CachedResponses struct {
 func NewCachedResponses(ctx context.Context, cfg *config.Healthcheck) *CachedResponses {
 	cache := &CachedResponses{}
 	go func(cfg *config.Healthcheck, ch *CachedResponses) {
+		ticker := time.NewTicker(cfg.RefreshDuration)
+		defer ticker.Stop()
+
 		for {
 			select {
 			case <-ctx.Done():
 				return
-			default:
+			case <-ticker.C:
 				ch.refresh(ctx, cfg)
-				time.Sleep(cfg.RefreshDuration)
 			}
 		}
 	}(cfg, cache)
