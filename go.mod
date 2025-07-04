@@ -6,7 +6,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/linkerd/linkerd2 v0.0.0-20250212165942-faa3f617eef5
 	github.com/mcuadros/go-defaults v1.2.0
-	github.com/openkcm/common-sdk v0.4.0
+	github.com/openkcm/common-sdk v0.5.0
 	github.com/samber/oops v1.19.0
 	github.com/veqryn/slog-context v0.8.0
 	go.opentelemetry.io/otel v1.37.0
