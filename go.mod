@@ -6,7 +6,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/linkerd/linkerd2 v0.0.0-20250212165942-faa3f617eef5
 	github.com/mcuadros/go-defaults v1.2.0
-	github.com/openkcm/common-sdk v0.4.0
+	github.com/openkcm/common-sdk v0.6.1
 	github.com/samber/oops v1.19.0
 	github.com/veqryn/slog-context v0.8.0
 	go.opentelemetry.io/otel v1.37.0
@@ -41,7 +41,7 @@ require (
 	github.com/go-openapi/jsonpointer v0.21.0 // indirect
 	github.com/go-openapi/jsonreference v0.21.0 // indirect
 	github.com/go-openapi/swag v0.23.0 // indirect
-	github.com/go-viper/mapstructure/v2 v2.3.0 // indirect
+	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
