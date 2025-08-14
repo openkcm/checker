@@ -12,7 +12,7 @@ require (
 	go.opentelemetry.io/otel v1.37.0
 	go.opentelemetry.io/otel/metric v1.37.0
 	go.opentelemetry.io/otel/trace v1.37.0
-	k8s.io/client-go v0.33.3
+	k8s.io/client-go v0.33.4
 )
 
 replace github.com/linkerd/linkerd2 => github.com/linkerd/linkerd2 v0.5.1-0.20250512184448-bc84368d859f
@@ -127,9 +127,9 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	helm.sh/helm/v3 v3.17.4 // indirect
-	k8s.io/api v0.33.3 // indirect
+	k8s.io/api v0.33.4 // indirect
 	k8s.io/apiextensions-apiserver v0.32.3 // indirect
-	k8s.io/apimachinery v0.33.3 // indirect
+	k8s.io/apimachinery v0.33.4 // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
 	k8s.io/kube-aggregator v0.32.3 // indirect
 	k8s.io/kube-openapi v0.0.0-20250318190949-c8a335a9a2ff // indirect
