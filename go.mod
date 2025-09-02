@@ -9,9 +9,9 @@ require (
 	github.com/openkcm/common-sdk v1.1.1
 	github.com/samber/oops v1.19.0
 	github.com/veqryn/slog-context v0.8.0
-	go.opentelemetry.io/otel v1.37.0
-	go.opentelemetry.io/otel/metric v1.37.0
-	go.opentelemetry.io/otel/trace v1.37.0
+	go.opentelemetry.io/otel v1.38.0
+	go.opentelemetry.io/otel/metric v1.38.0
+	go.opentelemetry.io/otel/trace v1.38.0
 	k8s.io/client-go v0.33.3
 )
 
