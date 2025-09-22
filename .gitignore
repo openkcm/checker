@@ -37,8 +37,6 @@ components/
 *.tmp
 .task/
 
-build_version.json
-
 # Go vendor directory
 /vendor
 
