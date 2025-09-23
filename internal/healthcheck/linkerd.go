@@ -49,6 +49,7 @@ func verifyLinkerd(ctx context.Context, cfg *config.Linkerd) (*Response, int) {
 	success, _ := healthcheck.RunChecks(output, outerr, hc, cfg.Output)
 
 	errMsg := outerr.String()
+
 	outMsg := output.String()
 	if !success && len(errMsg) > 0 {
 		errors = append(errors, ErrorResponse{
@@ -56,6 +57,7 @@ func verifyLinkerd(ctx context.Context, cfg *config.Linkerd) (*Response, int) {
 			Message: outMsg,
 		})
 	}
+
 	if !success {
 		slogctx.Warn(ctx, "Linkerd check", "output", outMsg, "error", errMsg)
 	}

@@ -27,6 +27,7 @@ func verifyClusterResource(ctx context.Context, rc *config.ClusterResource) (*Re
 		})
 		response.Errors = errors
 		response.Status = NOTOK
+
 		return response, http.StatusServiceUnavailable
 	}
 
@@ -38,6 +39,7 @@ func verifyClusterResource(ctx context.Context, rc *config.ClusterResource) (*Re
 		})
 		response.Errors = errors
 		response.Status = NOTOK
+
 		return response, http.StatusServiceUnavailable
 	}
 	defer func(b io.ReadCloser) {
@@ -52,10 +54,12 @@ func verifyClusterResource(ctx context.Context, rc *config.ClusterResource) (*Re
 		})
 		response.Errors = errors
 		response.Status = NOTOK
+
 		return response, http.StatusServiceUnavailable
 	}
 
 	status := http.StatusOK
+
 	errors = verifyChecks(rc.Checks, body, []byte(resp.Status), errors)
 	if len(errors) > 0 {
 		status = http.StatusServiceUnavailable

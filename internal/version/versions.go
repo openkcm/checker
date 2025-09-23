@@ -30,6 +30,7 @@ func Do(ctx context.Context, cfg *config.Versions) (map[string]any, int) {
 		} else {
 			res.Result = json.RawMessage(body)
 		}
+
 		response[svc.Name] = res
 	}
 

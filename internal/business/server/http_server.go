@@ -19,6 +19,7 @@ func registerHandlers(mux *http.ServeMux, cfg *config.Config, cache *healthcheck
 	if cfg.Healthcheck.Enabled {
 		mux.HandleFunc(cfg.Healthcheck.Endpoint, healthcheckHandlerFunc(cfg, cache))
 	}
+
 	if cfg.Versions.Enabled {
 		mux.HandleFunc(cfg.Versions.Endpoint, versionsHandlerFunc(cfg))
 	}
@@ -41,7 +42,8 @@ func createHTTPServer(ctx context.Context, cfg *config.Config) *http.Server {
 
 // StartHTTPServer starts the gRPC server using the given config.
 func StartHTTPServer(ctx context.Context, cfg *config.Config) error {
-	if err := initMeters(ctx, cfg); err != nil {
+	err := initMeters(ctx, cfg)
+	if err != nil {
 		return err
 	}
 
@@ -49,7 +51,9 @@ func StartHTTPServer(ctx context.Context, cfg *config.Config) error {
 
 	slogctx.Info(ctx, "Starting HTTP listener", "address", server.Addr)
 
-	listener, err := net.Listen("tcp", server.Addr)
+	var lc net.ListenConfig
+
+	listener, err := lc.Listen(ctx, "tcp", server.Addr)
 	if err != nil {
 		return oops.In("HTTP Server").
 			WithContext(ctx).
@@ -72,7 +76,8 @@ func StartHTTPServer(ctx context.Context, cfg *config.Config) error {
 	shutdownCtx, shutdownRelease := context.WithTimeout(ctx, cfg.Server.ShutdownTimeout)
 	defer shutdownRelease()
 
-	if err := server.Shutdown(shutdownCtx); err != nil {
+	err = server.Shutdown(shutdownCtx)
+	if err != nil {
 		return oops.In("HTTP Server").
 			WithContext(ctx).
 			Wrapf(err, "Failed shutting down HTTP server")

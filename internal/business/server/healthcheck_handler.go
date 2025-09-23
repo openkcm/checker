@@ -46,6 +46,7 @@ func healthcheckHandlerFunc(cfg *config.Config, ch *healthcheck.CachedResponses)
 
 		// Metrics
 		requestStartTime := time.Now()
+
 		defer func() {
 			elapsedTime := float64(time.Since(requestStartTime)) / float64(time.Millisecond)
 
