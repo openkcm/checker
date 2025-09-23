@@ -9,6 +9,7 @@ import (
 
 func verifyChecks(checks []config.Check, body, status []byte, errors []ErrorResponse) []ErrorResponse {
 	errorsAlias := errors
+
 	for _, check := range checks {
 		sourceValue := body
 
@@ -37,6 +38,7 @@ func verifyChecks(checks []config.Check, body, status []byte, errors []ErrorResp
 						Message: err.Error(),
 						Error:   "RegularExpression Compile",
 					})
+
 					return errorsAlias
 				}
 
@@ -83,5 +85,6 @@ func verifyChecks(checks []config.Check, body, status []byte, errors []ErrorResp
 			}
 		}
 	}
+
 	return errorsAlias
 }

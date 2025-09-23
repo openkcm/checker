@@ -30,6 +30,7 @@ func NewCachedResponses(ctx context.Context, cfg *config.Healthcheck) *CachedRes
 			}
 		}
 	}(cfg, cache)
+
 	return cache
 }
 
@@ -49,6 +50,7 @@ func (ch *CachedResponses) Response() map[string]any {
 
 func (ch *CachedResponses) refresh(ctx context.Context, cfg *config.Healthcheck) {
 	response, status := Do(ctx, cfg)
+
 	ch.mu.Lock()
 	defer ch.mu.Unlock()
 

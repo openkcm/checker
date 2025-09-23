@@ -23,15 +23,19 @@ func verifyKubernetesResource(ctx context.Context, rc *config.KubernetesResource
 		Status: OK,
 	}
 
-	var k8sConfig *rest.Config
-	var err error
+	var (
+		k8sConfig *rest.Config
+		err       error
+	)
 
 	// Check for KUBECONFIG or fallback to in-cluster
+
 	if kubeconfig := os.Getenv("KUBECONFIG"); kubeconfig != "" {
 		k8sConfig, err = clientcmd.BuildConfigFromFlags("", kubeconfig)
 	} else {
 		k8sConfig, err = rest.InClusterConfig()
 	}
+
 	if err != nil {
 		errors = append(errors, ErrorResponse{
 			Message: err.Error(),
@@ -39,6 +43,7 @@ func verifyKubernetesResource(ctx context.Context, rc *config.KubernetesResource
 		})
 		response.Errors = errors
 		response.Status = NOTOK
+
 		return response, http.StatusServiceUnavailable
 	}
 
@@ -50,6 +55,7 @@ func verifyKubernetesResource(ctx context.Context, rc *config.KubernetesResource
 		})
 		response.Errors = errors
 		response.Status = NOTOK
+
 		return response, http.StatusServiceUnavailable
 	}
 
@@ -61,6 +67,7 @@ func verifyKubernetesResource(ctx context.Context, rc *config.KubernetesResource
 		})
 		response.Errors = errors
 		response.Status = NOTOK
+
 		return response, http.StatusServiceUnavailable
 	}
 
@@ -74,6 +81,7 @@ func verifyKubernetesResource(ctx context.Context, rc *config.KubernetesResource
 		})
 		response.Errors = errors
 		response.Status = NOTOK
+
 		return response, http.StatusServiceUnavailable
 	}
 
@@ -85,6 +93,7 @@ func verifyKubernetesResource(ctx context.Context, rc *config.KubernetesResource
 		})
 		response.Errors = errors
 		response.Status = NOTOK
+
 		return response, http.StatusServiceUnavailable
 	}
 	defer func(b io.ReadCloser) {
@@ -99,15 +108,18 @@ func verifyKubernetesResource(ctx context.Context, rc *config.KubernetesResource
 		})
 		response.Errors = errors
 		response.Status = NOTOK
+
 		return response, http.StatusServiceUnavailable
 	}
 
 	status := http.StatusOK
+
 	errors = verifyChecks(rc.Checks, body, []byte(resp.Status), errors)
 	if len(errors) > 0 {
 		status = http.StatusServiceUnavailable
 		response.Errors = errors
 		response.Status = NOTOK
 	}
+
 	return response, status
 }

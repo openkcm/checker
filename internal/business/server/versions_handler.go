@@ -46,6 +46,7 @@ func versionsHandlerFunc(cfg *config.Config) func(http.ResponseWriter, *http.Req
 
 		// Metrics
 		requestStartTime := time.Now()
+
 		defer func() {
 			elapsedTime := float64(time.Since(requestStartTime)) / float64(time.Millisecond)
 

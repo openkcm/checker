@@ -24,11 +24,13 @@ func Do(ctx context.Context, cfg *config.Healthcheck) (map[string]any, int) {
 		response[cluster.Tag] = make([]*Response, 0)
 
 		wg.Add(len(cluster.Resources))
+
 		for _, h := range cluster.Resources {
 			go func(rc *config.ClusterResource, mu *sync.Mutex, m map[string]any, status *int) {
 				defer wg.Done()
 
 				resp, respStatus := verifyClusterResource(ctx, rc)
+
 				mu.Lock()
 				defer mu.Unlock()
 
@@ -48,13 +50,16 @@ func Do(ctx context.Context, cfg *config.Healthcheck) (map[string]any, int) {
 		response[k8s.Tag] = make([]*Response, 0)
 
 		wg.Add(len(k8s.Resources))
+
 		for _, h := range k8s.Resources {
 			go func(rc *config.KubernetesResource, mu *sync.Mutex, m map[string]any) {
 				defer wg.Done()
 
 				resp, respStatus := verifyKubernetesResource(ctx, rc)
+
 				mu.Lock()
 				defer mu.Unlock()
+
 				l, _ := m[k8s.Tag].([]*Response)
 				m[k8s.Tag] = append(l, resp)
 
