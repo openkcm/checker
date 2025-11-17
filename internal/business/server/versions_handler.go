@@ -69,17 +69,14 @@ func versionsHandlerFunc(cfg *config.Config) func(http.ResponseWriter, *http.Req
 
 		status := http.StatusOK
 		response := map[string]any{}
-
-		defer func() {
-			w.WriteHeader(status)
-			_ = json.NewEncoder(w).Encode(response)
-		}()
-
 		response, status = version.Do(ctx, &cfg.Versions)
 		response[cfg.Application.Name] = json.RawMessage(cfg.Application.BuildInfo.String())
 
+		w.WriteHeader(status)
+		_ = json.NewEncoder(w).Encode(response)
 		slogctx.Info(ctx, "Finished versions request",
-			"durationMs", time.Since(requestStartTime)/time.Millisecond)
+			"durationMs", time.Since(requestStartTime)/time.Millisecond, "status", status)
+
 		// End Business Logic
 	}
 }
