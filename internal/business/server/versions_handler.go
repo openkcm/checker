@@ -74,6 +74,7 @@ func versionsHandlerFunc(cfg *config.Config) func(http.ResponseWriter, *http.Req
 
 		w.WriteHeader(status)
 		_ = json.NewEncoder(w).Encode(response)
+
 		slogctx.Info(ctx, "Finished versions request",
 			"durationMs", time.Since(requestStartTime)/time.Millisecond, "status", status)
 

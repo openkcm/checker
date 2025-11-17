@@ -44,9 +44,9 @@ func Do(ctx context.Context, cfg *config.Versions) (map[string]any, int) {
 
 			mu.Lock()
 			defer mu.Unlock()
+
 			response[svc.Name] = res
 		}(mu, response)
-
 	}
 
 	wg.Wait()
