@@ -68,7 +68,7 @@ func versionsHandlerFunc(cfg *config.Config) func(http.ResponseWriter, *http.Req
 		w.Header().Set("Content-Type", "application/json")
 
 		response := versions.Query(ctx, &cfg.Versions)
-		response[cfg.Application.Name] = json.RawMessage(cfg.Application.BuildInfo.String())
+		response[cfg.Application.Name] = cfg.Application.BuildInfo
 
 		jsonStr, err := json.MarshalIndent(response, "", "  ")
 		if err != nil {

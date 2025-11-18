@@ -43,7 +43,17 @@ func Query(ctx context.Context, cfg *config.Versions) map[string]any {
 					Message: "Failed to call: " + svc.URL,
 				}
 			} else {
-				res.Result = json.RawMessage(body)
+				res.Result = map[string]any{}
+
+				err = json.Unmarshal(body, &res.Result)
+				if err != nil {
+					res.Status = NOTOK
+					res.Error = &ErrorResponse{
+						Error:   err.Error(),
+						Message: "Failed to unmarshal the following response: " + string(body),
+					}
+					res.Result = nil
+				}
 			}
 
 			mu.Lock()
