@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.2](https://github.com/openkcm/checker/compare/v0.2.1...v0.2.2) (2025-11-18)
+
+
+### Bug Fixes
+
+* include the value received from the version endpoint in case of unable to decode it ([#102](https://github.com/openkcm/checker/issues/102)) ([0f5680b](https://github.com/openkcm/checker/commit/0f5680bb725c4e75ced2d6bc6f2cae6bd5f11c29))
+
 ## [0.2.1](https://github.com/openkcm/checker/compare/v0.2.0...v0.2.1) (2025-11-18)
 
 
