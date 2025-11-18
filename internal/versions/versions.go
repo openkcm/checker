@@ -44,6 +44,7 @@ func Query(ctx context.Context, cfg *config.Versions) map[string]any {
 				}
 			} else {
 				res.Result = map[string]any{}
+
 				err = json.Unmarshal(body, &res.Result)
 				if err != nil {
 					res.Status = NOTOK
