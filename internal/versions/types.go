@@ -1,4 +1,4 @@
-package version
+package versions
 
 const OK = "OK"
 const NOTOK = "NOT OK"

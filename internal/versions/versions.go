@@ -1,4 +1,4 @@
-package version
+package versions
 
 import (
 	"context"
@@ -6,21 +6,25 @@ import (
 	"io"
 	"net/http"
 	"sync"
-	"time"
 
 	"github.com/openkcm/checker/internal/config"
 )
 
-func Do(ctx context.Context, cfg *config.Versions) (map[string]any, int) {
-	status := http.StatusOK
+func Query(ctx context.Context, cfg *config.Versions) map[string]any {
+	lenResources := len(cfg.Resources)
 
-	mu := &sync.Mutex{}
 	response := map[string]any{}
 
-	wg := sync.WaitGroup{}
-	wg.Add(len(cfg.Resources))
+	if lenResources == 0 {
+		return response
+	}
 
-	client := &http.Client{Timeout: 5 * time.Second}
+	mu := &sync.Mutex{}
+
+	wg := sync.WaitGroup{}
+	wg.Add(lenResources)
+
+	client := &http.Client{Timeout: cfg.Timeout}
 
 	for _, svc := range cfg.Resources {
 		go func(mu *sync.Mutex, response map[string]any) {
@@ -51,7 +55,7 @@ func Do(ctx context.Context, cfg *config.Versions) (map[string]any, int) {
 
 	wg.Wait()
 
-	return response, status
+	return response
 }
 
 func call(ctx context.Context, client *http.Client, svc *config.ServiceResource) ([]byte, error) {

@@ -42,6 +42,7 @@ type Server struct {
 type Versions struct {
 	Enabled   bool               `yaml:"enabled" default:"false"`
 	Endpoint  string             `yaml:"endpoint" default:"/versions"`
+	Timeout   time.Duration      `yaml:"timeout" default:"5s"`
 	Resources []*ServiceResource `yaml:"resources" default:"[]"`
 }
 
