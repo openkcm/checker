@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/openkcm/checker/compare/v0.2.0...v0.2.1) (2025-11-18)
+
+
+### Bug Fixes
+
+* on the k8s cluster the response are empty ([#100](https://github.com/openkcm/checker/issues/100)) ([fc3cb4d](https://github.com/openkcm/checker/commit/fc3cb4dbf6e737bacc40f819b0a636a49febfe0d))
+
 ## [0.2.0](https://github.com/openkcm/checker/compare/v0.1.4...v0.2.0) (2025-11-17)
 
 
