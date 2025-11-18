@@ -17,7 +17,7 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/openkcm/checker/internal/config"
-	"github.com/openkcm/checker/internal/version"
+	"github.com/openkcm/checker/internal/versions"
 )
 
 func versionsHandlerFunc(cfg *config.Config) func(http.ResponseWriter, *http.Request) {
@@ -67,16 +67,29 @@ func versionsHandlerFunc(cfg *config.Config) func(http.ResponseWriter, *http.Req
 
 		w.Header().Set("Content-Type", "application/json")
 
-		status := http.StatusOK
-		response := map[string]any{}
-		response, status = version.Do(ctx, &cfg.Versions)
+		response := versions.Query(ctx, &cfg.Versions)
 		response[cfg.Application.Name] = json.RawMessage(cfg.Application.BuildInfo.String())
 
-		w.WriteHeader(status)
-		_ = json.NewEncoder(w).Encode(response)
+		jsonStr, err := json.MarshalIndent(response, "", "  ")
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			slogctx.Error(ctx, "Error encoding response", "error", err)
+
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+
+		_, err = w.Write(jsonStr)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			slogctx.Error(ctx, "Error encoding response", "error", err)
+
+			return
+		}
 
 		slogctx.Info(ctx, "Finished versions request",
-			"durationMs", time.Since(requestStartTime)/time.Millisecond, "status", status)
+			"durationMs", time.Since(requestStartTime)/time.Millisecond, "response", string(jsonStr))
 
 		// End Business Logic
 	}
