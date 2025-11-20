@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/openkcm/common-sdk/pkg/utils"
+
 	"github.com/openkcm/checker/internal/config"
 )
 
@@ -43,17 +45,7 @@ func Query(ctx context.Context, cfg *config.Versions) map[string]any {
 					Message: "Failed to call: " + svc.URL,
 				}
 			} else {
-				res.Result = map[string]any{}
-
-				err = json.Unmarshal(body, &res.Result)
-				if err != nil {
-					res.Status = NOTOK
-					res.Error = &ErrorResponse{
-						Error:   err.Error(),
-						Message: "Failed to unmarshal the following response: " + string(body),
-					}
-					res.Result = nil
-				}
+				unmarshalValue(string(body), res)
 			}
 
 			mu.Lock()
@@ -66,6 +58,30 @@ func Query(ctx context.Context, cfg *config.Versions) map[string]any {
 	wg.Wait()
 
 	return response
+}
+
+func unmarshalValue(value string, res *Response) {
+	jsonVersion, err := utils.ExtractFromComplexValue(value)
+	if err != nil {
+		res.Status = NOTOK
+		res.Error = &ErrorResponse{
+			Error:   err.Error(),
+			Message: "Failed to decode the response: " + value,
+		}
+		res.Result = nil
+	} else {
+		res.Result = map[string]any{}
+
+		err = json.Unmarshal([]byte(jsonVersion), &res.Result)
+		if err != nil {
+			res.Status = NOTOK
+			res.Error = &ErrorResponse{
+				Error:   err.Error(),
+				Message: "Failed to unmarshal the following response: " + jsonVersion,
+			}
+			res.Result = nil
+		}
+	}
 }
 
 func call(ctx context.Context, client *http.Client, svc *config.ServiceResource) ([]byte, error) {
