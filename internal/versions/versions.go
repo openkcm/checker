@@ -7,8 +7,9 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/openkcm/checker/internal/config"
 	"github.com/openkcm/common-sdk/pkg/utils"
+
+	"github.com/openkcm/checker/internal/config"
 )
 
 func Query(ctx context.Context, cfg *config.Versions) map[string]any {
