@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.3](https://github.com/openkcm/checker/compare/v0.2.2...v0.2.3) (2025-11-20)
+
+
+### Bug Fixes
+
+* **deps:** bump golang.org/x/crypto from 0.41.0 to 0.45.0 in the go_modules group across 1 directory ([#104](https://github.com/openkcm/checker/issues/104)) ([cbc8f85](https://github.com/openkcm/checker/commit/cbc8f8517e092ae8602795bb7f4e0dfcd541b018))
+* improve the checker by decoding the value coming from services as base64 value ([#105](https://github.com/openkcm/checker/issues/105)) ([84b4a2d](https://github.com/openkcm/checker/commit/84b4a2df4873b70a59bfe76647ebc0986b179ede))
+
 ## [0.2.2](https://github.com/openkcm/checker/compare/v0.2.1...v0.2.2) (2025-11-18)
 
 
