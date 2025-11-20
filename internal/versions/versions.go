@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/openkcm/checker/internal/config"
+	"github.com/openkcm/common-sdk/pkg/utils"
 )
 
 func Query(ctx context.Context, cfg *config.Versions) map[string]any {
@@ -43,16 +44,26 @@ func Query(ctx context.Context, cfg *config.Versions) map[string]any {
 					Message: "Failed to call: " + svc.URL,
 				}
 			} else {
-				res.Result = map[string]any{}
-
-				err = json.Unmarshal(body, &res.Result)
+				jsonVersion, err := utils.ExtractFromComplexValue(string(body))
 				if err != nil {
 					res.Status = NOTOK
 					res.Error = &ErrorResponse{
 						Error:   err.Error(),
-						Message: "Failed to unmarshal the following response: " + string(body),
+						Message: "Failed to decode the response: " + string(body),
 					}
 					res.Result = nil
+				} else {
+					res.Result = map[string]any{}
+
+					err = json.Unmarshal([]byte(jsonVersion), &res.Result)
+					if err != nil {
+						res.Status = NOTOK
+						res.Error = &ErrorResponse{
+							Error:   err.Error(),
+							Message: "Failed to unmarshal the following response: " + jsonVersion,
+						}
+						res.Result = nil
+					}
 				}
 			}
 
