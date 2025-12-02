@@ -38,7 +38,7 @@ var (
 //   - Start the business logic and eventually return the error from it
 func run(ctx context.Context) error {
 	// Load Configuration
-	defaultValues := map[string]interface{}{}
+	defaultValues := map[string]any{}
 	cfg := &config.Config{}
 
 	err := commoncfg.LoadConfig(cfg, defaultValues, "/etc/checker", ".")
