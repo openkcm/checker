@@ -44,22 +44,18 @@ func verifyLinkerd(ctx context.Context, cfg *config.Linkerd) (*Response, int) {
 		CRDManifest:           crdManifest.String(),
 	})
 
-	output := &bytes.Buffer{}
-	outerr := &bytes.Buffer{}
-	success, _ := healthcheck.RunChecks(output, outerr, hc, cfg.Output)
-
-	errMsg := outerr.String()
-
-	outMsg := output.String()
-	if !success && len(errMsg) > 0 {
-		errors = append(errors, ErrorResponse{
-			Error:   errMsg,
-			Message: outMsg,
-		})
-	}
+	// Run the healthchecks using the new API
+	success, _ := hc.RunChecks(func(result *healthcheck.CheckResult) {
+		if result.Err != nil && result.Err.Error() != "" {
+			errors = append(errors, ErrorResponse{
+				Error:   result.Err.Error(),
+				Message: result.Description,
+			})
+		}
+	})
 
 	if !success {
-		slogctx.Warn(ctx, "Linkerd check", "output", outMsg, "error", errMsg)
+		slogctx.Warn(ctx, "Linkerd check failed", "errors", errors)
 	}
 
 	status := http.StatusOK
