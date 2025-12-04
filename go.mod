@@ -5,7 +5,7 @@ go 1.25.0
 require (
 	github.com/google/uuid v1.6.0
 	github.com/linkerd/linkerd2 v0.5.1-0.20251126204810-b5d6661b9e82
-	github.com/openkcm/common-sdk v1.7.0
+	github.com/openkcm/common-sdk v1.8.0
 	github.com/samber/oops v1.19.4
 	github.com/veqryn/slog-context v0.8.0
 	go.opentelemetry.io/otel v1.38.0
