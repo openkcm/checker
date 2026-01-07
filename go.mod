@@ -11,7 +11,7 @@ require (
 	go.opentelemetry.io/otel v1.39.0
 	go.opentelemetry.io/otel/metric v1.39.0
 	go.opentelemetry.io/otel/trace v1.39.0
-	k8s.io/client-go v0.34.2
+	k8s.io/client-go v0.35.0
 )
 
 require (
@@ -130,9 +130,9 @@ require (
 	gopkg.in/evanphx/json-patch.v4 v4.13.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	helm.sh/helm/v3 v3.19.2 // indirect
-	k8s.io/api v0.34.2 // indirect
+	k8s.io/api v0.35.0 // indirect
 	k8s.io/apiextensions-apiserver v0.34.2 // indirect
-	k8s.io/apimachinery v0.34.2 // indirect
+	k8s.io/apimachinery v0.35.0 // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
 	k8s.io/kube-aggregator v0.34.2 // indirect
 	k8s.io/kube-openapi v0.0.0-20251125145642-4e65d59e963e // indirect
