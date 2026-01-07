@@ -37,11 +37,11 @@ image:
   # Override the image tag to deploy by setting this variable.
   # If no value is set, the chart's appVersion is used.
   # +docs:property
-  #wtag: 1.0.0
+  # tag: 1.0.0
 
   # Setting a digest will override any tag.
   # +docs:property
-  digest: sha256:fcde067efa182a503a6e9d7f3a6565bacf7cb884dce552c0c41feb319946bc33
+  # digest: sha256:fcde067efa182a503a6e9d7f3a6565bacf7cb884dce552c0c41feb319946bc33
 
   # Kubernetes imagePullPolicy.
   pullPolicy: IfNotPresent
