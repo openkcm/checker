@@ -59,6 +59,7 @@ func verifyLinkerd(ctx context.Context, cfg *config.Linkerd) (*Response, int) {
 	}
 
 	status := http.StatusOK
+
 	if !success {
 		slogctx.Warn(ctx, "Linkerd check failed", "errors", errors)
 
