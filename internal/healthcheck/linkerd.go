@@ -51,8 +51,10 @@ func verifyLinkerd(ctx context.Context, cfg *config.Linkerd) (*Response, int) {
 				"category", result.Category,
 				"error", result.Err,
 				"message", result.Description)
+
 			return
 		}
+
 		if result.Err != nil && result.Err.Error() != "" {
 			errors = append(errors, ErrorResponse{
 				Error:   result.Err.Error(),
