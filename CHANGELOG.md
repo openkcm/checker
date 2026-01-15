@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.4](https://github.com/openkcm/checker/compare/v0.2.3...v0.2.4) (2026-01-15)
+
+
+### Bug Fixes
+
+* **deps:** bump github.com/openkcm/common-sdk from 1.7.0 to 1.8.0 ([#114](https://github.com/openkcm/checker/issues/114)) ([e7adcac](https://github.com/openkcm/checker/commit/e7adcacdbaed6a82820349a8ad1498ae9f00bd2c))
+* **deps:** Update dependencies ([#124](https://github.com/openkcm/checker/issues/124)) ([a2e7856](https://github.com/openkcm/checker/commit/a2e785600320a1d080bfe6bbf3b65387cf996ec3))
+* Fix linter error ([#110](https://github.com/openkcm/checker/issues/110)) ([ad8bc7b](https://github.com/openkcm/checker/commit/ad8bc7b5f3819ee092562e4a75a4e5a122b0769c))
+* Fix make test target as no integration tests exist yet ([#109](https://github.com/openkcm/checker/issues/109)) ([ce43dc7](https://github.com/openkcm/checker/commit/ce43dc7085b7ac8b5c034775a97c44ba8694caf2))
+* Update deps to fix vulnerability with linkerd ([#112](https://github.com/openkcm/checker/issues/112)) ([bf97180](https://github.com/openkcm/checker/commit/bf97180c2737b11aade429e5019c2d9452fcf7ac))
+* warning has been reported as issues ([#126](https://github.com/openkcm/checker/issues/126)) ([9be5120](https://github.com/openkcm/checker/commit/9be51201510e3cf3cb0b13c2e1003eabab802377))
+
 ## [0.2.3](https://github.com/openkcm/checker/compare/v0.2.2...v0.2.3) (2025-11-20)
 
 
