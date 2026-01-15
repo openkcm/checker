@@ -46,6 +46,15 @@ func verifyLinkerd(ctx context.Context, cfg *config.Linkerd) (*Response, int) {
 
 	// Run the healthchecks using the new API
 	success, _ := hc.RunChecks(func(result *healthcheck.CheckResult) {
+		if result.Warning {
+			slogctx.Warn(ctx, "Linkerd check warning.",
+				"category", result.Category,
+				"error", result.Err,
+				"message", result.Description)
+
+			return
+		}
+
 		if result.Err != nil && result.Err.Error() != "" {
 			errors = append(errors, ErrorResponse{
 				Error:   result.Err.Error(),
@@ -54,15 +63,16 @@ func verifyLinkerd(ctx context.Context, cfg *config.Linkerd) (*Response, int) {
 		}
 	})
 
+	status := http.StatusOK
+
 	if !success {
 		slogctx.Warn(ctx, "Linkerd check failed", "errors", errors)
-	}
 
-	status := http.StatusOK
-	if len(errors) > 0 {
-		status = http.StatusServiceUnavailable
-		response.Errors = errors
-		response.Status = NOTOK
+		if len(errors) > 0 {
+			status = http.StatusServiceUnavailable
+			response.Errors = errors
+			response.Status = NOTOK
+		}
 	}
 
 	return response, status
