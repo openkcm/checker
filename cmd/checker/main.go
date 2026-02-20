@@ -75,7 +75,7 @@ func run(ctx context.Context) error {
 			),
 		)
 
-		healthOptions := make([]health.Option, 0)
+		healthOptions := make([]health.Option, 0, 2)
 		healthOptions = append(healthOptions,
 			health.WithDisabledAutostart(),
 			health.WithStatusListener(func(ctx context.Context, state health.State) {

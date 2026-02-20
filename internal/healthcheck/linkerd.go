@@ -20,7 +20,7 @@ func verifyLinkerd(ctx context.Context, cfg *config.Linkerd) (*Response, int) {
 		Status: OK,
 	}
 
-	checks := make([]healthcheck.CategoryID, 0)
+	checks := make([]healthcheck.CategoryID, 0, len(cfg.Checks))
 
 	for _, c := range cfg.Checks {
 		checks = append(checks, healthcheck.CategoryID(c))
