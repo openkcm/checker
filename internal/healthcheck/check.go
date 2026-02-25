@@ -5,15 +5,13 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/openkcm/common-sdk/pkg/pointers"
+
 	"github.com/openkcm/checker/internal/config"
 )
 
-func ref(v int) *int {
-	return &v
-}
-
 func Do(ctx context.Context, cfg *config.Healthcheck) (map[string]any, int) {
-	status := ref(http.StatusOK)
+	status := pointers.Int(http.StatusOK)
 	response := map[string]any{}
 
 	wg := sync.WaitGroup{}

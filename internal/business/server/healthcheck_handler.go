@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -20,9 +21,9 @@ import (
 	"github.com/openkcm/checker/internal/healthcheck"
 )
 
-func healthcheckHandlerFunc(cfg *config.Config, ch *healthcheck.CachedResponses) func(http.ResponseWriter, *http.Request) {
+func healthcheckHandlerFunc(operation string, cfg *config.Config, ch *healthcheck.CachedResponses) func(http.ResponseWriter, *http.Request) {
 	traceAttrs := otlp.CreateAttributesFrom(cfg.Application,
-		attribute.String(commoncfg.AttrOperation, "healthcheck"),
+		attribute.String(commoncfg.AttrOperation, operation),
 	)
 
 	tracer := otel.Tracer("HealthCheckerHandler", trace.WithInstrumentationAttributes(traceAttrs...))
@@ -31,7 +32,7 @@ func healthcheckHandlerFunc(cfg *config.Config, ch *healthcheck.CachedResponses)
 		// Request Id will be propagated through all method calls propagated of this HTTP handler
 		ctx := slogctx.With(req.Context(),
 			commoncfg.AttrRequestID, uuid.New().String(),
-			commoncfg.AttrOperation, "healthcheck",
+			commoncfg.AttrOperation, operation,
 		)
 
 		// Manual OTEL Tracing
@@ -39,7 +40,7 @@ func healthcheckHandlerFunc(cfg *config.Config, ch *healthcheck.CachedResponses)
 
 		ctx, span := tracer.Start(
 			parentCtx,
-			"healthcheck-span",
+			operation+"-span",
 			trace.WithAttributes(traceAttrs...),
 		)
 		defer span.End()
@@ -54,7 +55,7 @@ func healthcheckHandlerFunc(cfg *config.Config, ch *healthcheck.CachedResponses)
 			attrs := metric.WithAttributes(
 				otlp.CreateAttributesFrom(cfg.Application,
 					attribute.String("userAgent", req.UserAgent()),
-					attribute.String(commoncfg.AttrOperation, "healthcheck"),
+					attribute.String(commoncfg.AttrOperation, operation),
 				)...,
 			)
 
@@ -63,14 +64,14 @@ func healthcheckHandlerFunc(cfg *config.Config, ch *healthcheck.CachedResponses)
 		}()
 
 		// Business Logic
-		slogctx.Info(ctx, "Starting healthcheck request")
+		slogctx.Info(ctx, "Starting request", "operation", operation)
 
 		w.Header().Set("Content-Type", "application/json")
 
 		w.WriteHeader(ch.Status())
 		_ = json.NewEncoder(w).Encode(ch.Response())
 
-		slogctx.Info(ctx, "Finished healthcheck request",
+		slogctx.Info(ctx, fmt.Sprintf("Finished %s request", operation),
 			"durationMs", time.Since(requestStartTime)/time.Millisecond, "response", ch.Response(), "status", ch.Status())
 		// End Business Logic
 	}
