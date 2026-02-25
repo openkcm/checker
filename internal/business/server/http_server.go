@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net"
 	"net/http"
 
@@ -15,9 +16,24 @@ import (
 )
 
 // registerHandlers registers the default http handlers for the status server
-func registerHandlers(mux *http.ServeMux, cfg *config.Config, cache *healthcheck.CachedResponses) {
+func registerHandlers(ctx context.Context, mux *http.ServeMux, cfg *config.Config) {
 	if cfg.Healthcheck.Enabled {
-		mux.HandleFunc(cfg.Healthcheck.Endpoint, healthcheckHandlerFunc(cfg, cache))
+		cache := healthcheck.NewCachedResponses(ctx, &cfg.Healthcheck)
+		mux.HandleFunc(cfg.Healthcheck.Endpoint,
+			healthcheckHandlerFunc(cfg.Healthcheck.Name, cfg, cache),
+		)
+	}
+
+	for idx, hc := range cfg.Healthchecks {
+		if hc.Enabled {
+			mux.HandleFunc(hc.Endpoint,
+				healthcheckHandlerFunc(
+					fmt.Sprintf("%s-%d", cfg.Healthcheck.Name, idx),
+					cfg,
+					healthcheck.NewCachedResponses(ctx, &hc),
+				),
+			)
+		}
 	}
 
 	if cfg.Versions.Enabled {
@@ -29,8 +45,7 @@ func registerHandlers(mux *http.ServeMux, cfg *config.Config, cache *healthcheck
 func createHTTPServer(ctx context.Context, cfg *config.Config) *http.Server {
 	mux := http.NewServeMux()
 
-	cache := healthcheck.NewCachedResponses(ctx, &cfg.Healthcheck)
-	registerHandlers(mux, cfg, cache)
+	registerHandlers(ctx, mux, cfg)
 
 	slogctx.Info(ctx, "Creating HTTP server", "address", cfg.Server.Address)
 

@@ -6,14 +6,11 @@ import (
 	"sync"
 
 	"github.com/openkcm/checker/internal/config"
+	"github.com/openkcm/common-sdk/pkg/pointers"
 )
 
-func ref(v int) *int {
-	return &v
-}
-
 func Do(ctx context.Context, cfg *config.Healthcheck) (map[string]any, int) {
-	status := ref(http.StatusOK)
+	status := pointers.Int(http.StatusOK)
 	response := map[string]any{}
 
 	wg := sync.WaitGroup{}

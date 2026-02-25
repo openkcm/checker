@@ -28,9 +28,10 @@ const (
 type Config struct {
 	commoncfg.BaseConfig `mapstructure:",squash"`
 
-	Server      Server      `yaml:"server"`
-	Healthcheck Healthcheck `yaml:"healthcheck"`
-	Versions    Versions    `yaml:"versions"`
+	Server       Server        `yaml:"server"`
+	Healthcheck  Healthcheck   `yaml:"healthcheck"`
+	Healthchecks []Healthcheck `yaml:"healthchecks"`
+	Versions     Versions      `yaml:"versions"`
 }
 
 type Server struct {
@@ -53,6 +54,7 @@ type ServiceResource struct {
 
 type Healthcheck struct {
 	Enabled         bool          `yaml:"enabled" default:"false"`
+	Name            string        `yaml:"name" default:"healthcheck"`
 	Endpoint        string        `yaml:"endpoint" default:"/healthz"`
 	RefreshDuration time.Duration `yaml:"refreshDuration" default:"5s"`
 	Cluster         Cluster       `yaml:"cluster"`
