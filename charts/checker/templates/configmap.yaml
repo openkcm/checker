@@ -33,6 +33,9 @@ data:
     healthcheck:
       {{- toYaml .healthcheck | nindent 6 }}
 
+    healthchecks:
+      {{- toYaml .healthchecks | nindent 6 }}
+
     versions:
       {{- toYaml .versions | nindent 6 }}
 
