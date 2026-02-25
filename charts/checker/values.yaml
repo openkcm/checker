@@ -164,6 +164,10 @@ autoscaling:
   targetCPUUtilizationPercentage: 80
   targetMemoryUtilizationPercentage: 80
 
+# This is for setting up pod topology spread constraints by hostname more information can be found here:
+# https://kubernetes.io/docs/concepts/workloads/pods/pod-topology-spread-constraints/
+topologySpreadConstraints: []
+
 # Additional init containers on the output Deployment definition.
 extraInitContainers: []
 
