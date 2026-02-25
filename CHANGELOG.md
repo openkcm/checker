@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.5](https://github.com/openkcm/checker/compare/v0.2.4...v0.2.5) (2026-02-25)
+
+
+### Bug Fixes
+
+* include a new endpoint to check health check ([#136](https://github.com/openkcm/checker/issues/136)) ([5644976](https://github.com/openkcm/checker/commit/5644976dee4d14476b0716acdb8e1271156f65f2))
+
 ## [0.2.4](https://github.com/openkcm/checker/compare/v0.2.3...v0.2.4) (2026-01-15)
 
 
