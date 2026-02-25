@@ -5,8 +5,9 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/openkcm/checker/internal/config"
 	"github.com/openkcm/common-sdk/pkg/pointers"
+
+	"github.com/openkcm/checker/internal/config"
 )
 
 func Do(ctx context.Context, cfg *config.Healthcheck) (map[string]any, int) {
