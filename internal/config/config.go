@@ -57,18 +57,17 @@ type Healthcheck struct {
 	Name            string        `yaml:"name" default:"healthcheck"`
 	Endpoint        string        `yaml:"endpoint" default:"/healthz"`
 	RefreshDuration time.Duration `yaml:"refreshDuration" default:"5s"`
-	Cluster         Cluster       `yaml:"cluster"`
-	Kubernetes      Kubernetes    `yaml:"kubernetes"`
+	Cluster         Domain        `yaml:"cluster"`
+	Kubernetes      Domain        `yaml:"kubernetes"`
 	Linkerd         Linkerd       `yaml:"linkerd"`
 }
 
-type Cluster struct {
-	Enabled   bool              `yaml:"enabled"`
-	Tag       string            `yaml:"tag" default:"cluster"`
-	Resources []ClusterResource `yaml:"resources"`
+type Domain struct {
+	Enabled   bool       `yaml:"enabled"`
+	Resources []Resource `yaml:"resources"`
 }
 
-type ClusterResource struct {
+type Resource struct {
 	Name   string  `yaml:"name"`
 	URL    string  `yaml:"url"`
 	Checks []Check `yaml:"checks"`
@@ -86,18 +85,6 @@ type Linkerd struct {
 	Output                string   `yaml:"output" default:"short"`
 	Checks                []string `yaml:"checks"`
 	Retry                 Retry    `yaml:"retry"`
-}
-
-type Kubernetes struct {
-	Enabled   bool                 `yaml:"enabled"`
-	Tag       string               `yaml:"tag" default:"kubernetes"`
-	Resources []KubernetesResource `yaml:"resources"`
-}
-type KubernetesResource struct {
-	Name   string  `yaml:"name"`
-	URL    string  `yaml:"url"`
-	Checks []Check `yaml:"checks"`
-	Retry  Retry   `yaml:"retry"`
 }
 
 type Check struct {

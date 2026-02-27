@@ -10,108 +10,104 @@ import (
 	"sync"
 
 	"github.com/openkcm/checker/internal/config"
-	"github.com/openkcm/checker/internal/utils"
 )
 
-func (ch *CachedResponses) Do(ctx context.Context, cfg *config.Healthcheck) (map[string]any, int) {
-	statusContainer := utils.NewContainerWithDefault[int](http.StatusOK)
-
-	response := map[string]any{}
-
+func (ch *CachedResponses) process(
+	ctx context.Context,
+	cfg *config.Healthcheck,
+	resultCollector *ResultCollector,
+) {
 	wg := sync.WaitGroup{}
 
-	cluster := cfg.Cluster
-	if cluster.Enabled {
-		clusterMu := &sync.Mutex{}
-		response[cluster.Tag] = make([]*Response, 0)
-
-		wg.Add(len(cluster.Resources))
-
-		for _, h := range cluster.Resources {
-			go func(rc *config.ClusterResource, mu *sync.Mutex, m map[string]any, status *utils.Container[int]) {
-				defer wg.Done()
-
-				resp, respStatus := verifyClusterResource(ctx, rc)
-
-				mu.Lock()
-				defer mu.Unlock()
-
-				l, _ := m[cluster.Tag].([]*Response)
-				m[cluster.Tag] = append(l, resp)
-
-				retryStatus := ch.updateRetryState(
-					h.Retry.MaxRetries,
-					hashMultipleStrings(cluster.Tag, h.Name, h.URL),
-					respStatus,
-				)
-				if retryStatus == http.StatusOK && respStatus != http.StatusOK {
-					resp.Status = OK_TOLERATED_FAILURE_ON_RETRY
-				}
-
-				if retryStatus != http.StatusOK {
-					status.Store(retryStatus)
-				}
-			}(&h, clusterMu, response, statusContainer)
-		}
+	service := &cfg.Cluster
+	if service.Enabled && len(service.Resources) > 0 {
+		wg.Go(func() {
+			ch.processResources(ctx, service, "services", verifyServiceResource, resultCollector)
+		})
 	}
 
-	k8s := cfg.Kubernetes
-	if k8s.Enabled {
-		k8Mu := &sync.Mutex{}
-		response[k8s.Tag] = make([]*Response, 0)
-
-		wg.Add(len(k8s.Resources))
-
-		for _, h := range k8s.Resources {
-			go func(rc *config.KubernetesResource, mu *sync.Mutex, m map[string]any, status *utils.Container[int]) {
-				defer wg.Done()
-
-				resp, respStatus := verifyKubernetesResource(ctx, rc)
-
-				mu.Lock()
-				defer mu.Unlock()
-
-				l, _ := m[k8s.Tag].([]*Response)
-				m[k8s.Tag] = append(l, resp)
-
-				retryStatus := ch.updateRetryState(
-					h.Retry.MaxRetries,
-					hashMultipleStrings(k8s.Tag, h.Name, h.URL),
-					respStatus,
-				)
-				if retryStatus == http.StatusOK && respStatus != http.StatusOK {
-					resp.Status = OK_TOLERATED_FAILURE_ON_RETRY
-				}
-
-				if retryStatus != http.StatusOK {
-					status.Store(retryStatus)
-				}
-			}(&h, k8Mu, response, statusContainer)
-		}
+	k8s := &cfg.Kubernetes
+	if k8s.Enabled && len(k8s.Resources) > 0 {
+		wg.Go(func() {
+			ch.processResources(ctx, k8s, "kubernetes", verifyK8SResource, resultCollector)
+		})
 	}
 
-	linkerd := cfg.Linkerd
+	linkerd := &cfg.Linkerd
 	if linkerd.Enabled {
-		resp, respStatus := verifyLinkerd(ctx, &linkerd)
-		response[linkerd.Tag] = resp
-
-		retryStatus := ch.updateRetryState(
-			linkerd.Retry.MaxRetries,
-			hashMultipleStrings(linkerd.Tag, linkerd.ControlPlaneNamespace, linkerd.DataPlaneNamespace, linkerd.CNINamespace),
-			respStatus,
-		)
-		if retryStatus == http.StatusOK && respStatus != http.StatusOK {
-			resp.Status = OK_TOLERATED_FAILURE_ON_RETRY
-		}
-
-		if retryStatus != http.StatusOK {
-			statusContainer.Store(retryStatus)
-		}
+		wg.Go(func() {
+			ch.processLinkerdResources(ctx, linkerd, resultCollector)
+		})
 	}
 
 	wg.Wait()
+}
 
-	return response, statusContainer.Read()
+func (ch *CachedResponses) processResources(
+	ctx context.Context,
+	cfg *config.Domain,
+	tag string,
+	verifyResource func(context.Context, *config.Resource) (*Response, int),
+	resultCollector *ResultCollector,
+) {
+	if len(cfg.Resources) == 0 {
+		return
+	}
+
+	resultCollector.Data.Store(tag, make([]*Response, 0))
+
+	wg := sync.WaitGroup{}
+	wg.Add(len(cfg.Resources))
+
+	for _, h := range cfg.Resources {
+		go func(rc *config.Resource, resultCollector *ResultCollector) {
+			defer wg.Done()
+
+			resp, respStatus := verifyResource(ctx, rc)
+
+			value, _ := resultCollector.Data.Load(tag)
+			l, _ := value.([]*Response)
+			l = append(l, resp)
+			resultCollector.Data.Store(tag, l)
+
+			retryStatus := ch.updateRetryState(
+				h.Retry.MaxRetries,
+				hashMultipleStrings(tag, h.Name, h.URL),
+				respStatus,
+			)
+			if retryStatus == http.StatusOK && respStatus != http.StatusOK {
+				resp.Status = OK_TOLERATED_FAILURE_ON_RETRY
+			}
+
+			if retryStatus != http.StatusOK {
+				resultCollector.Status.Store(retryStatus)
+			}
+		}(&h, resultCollector)
+	}
+
+	wg.Wait()
+}
+
+func (ch *CachedResponses) processLinkerdResources(
+	ctx context.Context,
+	linkerd *config.Linkerd,
+	resultCollector *ResultCollector,
+) {
+	resp, respStatus := verifyLinkerd(ctx, linkerd)
+	resultCollector.Data.Store(linkerd.Tag, resp)
+
+	retryStatus := ch.updateRetryState(
+		linkerd.Retry.MaxRetries,
+		hashMultipleStrings(linkerd.Tag, linkerd.ControlPlaneNamespace, linkerd.DataPlaneNamespace, linkerd.CNINamespace),
+		respStatus,
+	)
+	if retryStatus == http.StatusOK && respStatus != http.StatusOK {
+		resp.Status = OK_TOLERATED_FAILURE_ON_RETRY
+	}
+
+	if retryStatus != http.StatusOK {
+		resultCollector.Status.Store(retryStatus)
+	}
 }
 
 // updateRetryState updates the retry map and returns the status pointer if the response failed and max retries are exceeded.

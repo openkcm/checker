@@ -14,7 +14,7 @@ import (
 	"github.com/openkcm/checker/internal/config"
 )
 
-func verifyKubernetesResource(ctx context.Context, rc *config.KubernetesResource) (*Response, int) {
+func verifyK8SResource(ctx context.Context, rc *config.Resource) (*Response, int) {
 	errors := make([]ErrorResponse, 0)
 
 	response := &Response{
