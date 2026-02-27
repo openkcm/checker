@@ -1,7 +1,10 @@
 package healthcheck
 
-const OK = "OK"
-const NOTOK = "NOT OK"
+const (
+	OK                            = "OK"
+	OK_TOLERATED_FAILURE_ON_RETRY = "OK [FAILURE TOLERATED ON RETRY]"
+	NOTOK                         = "NOT OK"
+)
 
 type Response struct {
 	Name   string          `json:"name,omitempty"`

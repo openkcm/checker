@@ -72,6 +72,7 @@ type ClusterResource struct {
 	Name   string  `yaml:"name"`
 	URL    string  `yaml:"url"`
 	Checks []Check `yaml:"checks"`
+	Retry  Retry   `yaml:"retry"`
 }
 
 type Linkerd struct {
@@ -84,6 +85,7 @@ type Linkerd struct {
 	CNIEnabled            bool     `yaml:"cniEnabled"`
 	Output                string   `yaml:"output" default:"short"`
 	Checks                []string `yaml:"checks"`
+	Retry                 Retry    `yaml:"retry"`
 }
 
 type Kubernetes struct {
@@ -95,10 +97,15 @@ type KubernetesResource struct {
 	Name   string  `yaml:"name"`
 	URL    string  `yaml:"url"`
 	Checks []Check `yaml:"checks"`
+	Retry  Retry   `yaml:"retry"`
 }
 
 type Check struct {
 	Type   CheckType  `yaml:"type" default:"Contains"`
 	Source SourceType `yaml:"source" default:"ResponseBody"`
 	Value  string     `yaml:"value"`
+}
+
+type Retry struct {
+	MaxRetries int `yaml:"maxRetries" default:"0"`
 }
