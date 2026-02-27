@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.3.0](https://github.com/openkcm/checker/compare/v0.2.5...v0.3.0) (2026-02-27)
+
+
+### Features
+
+* Add topology constraints to helm chart ([#138](https://github.com/openkcm/checker/issues/138)) ([6b1c1dc](https://github.com/openkcm/checker/commit/6b1c1dc19e857f1c041c94c17ba777839ffe1964))
+
+
+### Bug Fixes
+
+* add support for retry for failure tolleration ([#141](https://github.com/openkcm/checker/issues/141)) ([d67a529](https://github.com/openkcm/checker/commit/d67a529c5b5658ff85f778da1bd3a3f6fc090141))
+* include the healthchecks configuration in the helm chart ([#139](https://github.com/openkcm/checker/issues/139)) ([efcba7f](https://github.com/openkcm/checker/commit/efcba7fd463a8dc7fb6009b44332e1701dda1b7b))
+
 ## [0.2.5](https://github.com/openkcm/checker/compare/v0.2.4...v0.2.5) (2026-02-25)
 
 
