@@ -9,7 +9,7 @@ import (
 	"github.com/openkcm/checker/internal/config"
 )
 
-func verifyClusterResource(ctx context.Context, rc *config.ClusterResource) (*Response, int) {
+func verifyServiceResource(ctx context.Context, rc *config.Resource) (*Response, int) {
 	errors := make([]ErrorResponse, 0)
 	response := &Response{
 		Name:   rc.Name,

@@ -7,7 +7,7 @@ server:
 
 status:
   enabled: true
-  address: ":8888"
+  address: ":8889"
   profiling: true
 
 logger:
@@ -25,35 +25,47 @@ versions:
 healthcheck:
   endpoint: "/healthz"
   enabled: true
-  refreshDuration: 10s
+  refreshDuration: 3s
   cluster:
     enabled: true
     resources:
-      - name: envoyproxy-ingress-gateway
-        url: http://envoyproxy-ingress-gateway.envoy-gateway-system.svc:8888/ready
+      - name: localhost
+        url: http://localhost:8888/probe/readiness
+        retry:
+          maxRetries: 3
         checks:
-          - type: Exact #oneof: Contains, RegularExpression, Prefix, Suffix, Exact
+          - type: Equal #oneof: Contains, RegularExpression, Prefix, Suffix, Equal
             source: ResponseStatus #oneof: ResponseBody, ResponseStatus
             value: "200 OK"
-      - name: envoyproxy-ingress-certificate-gateway
-        url: http://envoyproxy-ingress-certificate-gateway.envoy-gateway-system.svc:8888/ready
-        checks:
-          - type: Exact #oneof: Contains, RegularExpression, Prefix, Suffix, Exact
-            source: ResponseStatus #oneof: ResponseBody, ResponseStatus
-            value: "200 OK"
-      - name: envoy-gateway
-        url: http://envoy-gateway.envoy-gateway-system.svc:8888/healthz
-        checks:
-          - type: Exact #oneof: Contains, RegularExpression, Prefix, Suffix, Exact
-            source: ResponseStatus #oneof: ResponseBody, ResponseStatus
-            value: "200 OK"
+#      - name: envoyproxy-ingress-gateway
+#        url: http://envoyproxy-ingress-gateway.envoy-gateway-system.svc:8888/ready
+#        checks:
+#          - type: Equal #oneof: Contains, RegularExpression, Prefix, Suffix, Equal
+#            source: ResponseStatus #oneof: ResponseBody, ResponseStatus
+#            value: "200 OK"
+#      - name: envoyproxy-ingress-certificate-gateway
+#        url: http://envoyproxy-ingress-certificate-gateway.envoy-gateway-system.svc:8888/ready
+#        retry:
+#          maxRetries: 3
+#        checks:
+#          - type: Equal #oneof: Contains, RegularExpression, Prefix, Suffix, Equal
+#            source: ResponseStatus #oneof: ResponseBody, ResponseStatus
+#            value: "200 OK"
+#      - name: envoy-gateway
+#        url: http://envoy-gateway.envoy-gateway-system.svc:8888/healthz
+#        retry:
+#          maxRetries: 3
+#        checks:
+#          - type: Equal #oneof: Contains, RegularExpression, Prefix, Suffix, Equal
+#            source: ResponseStatus #oneof: ResponseBody, ResponseStatus
+#            value: "200 OK"
   kubernetes:
-    enabled: true
+    enabled: false
     resources:
       - name: livez-verbose
         url: /livez?verbose
         checks:
-          - type: Exact #oneof: Contains, RegularExpression, Prefix, Suffix, Exact
+          - type: Exact #oneof: Contains, RegularExpression, Prefix, Suffix, Equal
             source: ResponseStatus #oneof: ResponseBody, ResponseStatus
             value: "200 OK"
   linkerd:
