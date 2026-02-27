@@ -22,14 +22,14 @@ func (ch *CachedResponses) process(
 	service := &cfg.Cluster
 	if service.Enabled && len(service.Resources) > 0 {
 		wg.Go(func() {
-			ch.processResources(ctx, service, "services", verifyServiceResource, resultCollector)
+			ch.processResources(ctx, service, verifyServiceResource, resultCollector)
 		})
 	}
 
 	k8s := &cfg.Kubernetes
 	if k8s.Enabled && len(k8s.Resources) > 0 {
 		wg.Go(func() {
-			ch.processResources(ctx, k8s, "kubernetes", verifyK8SResource, resultCollector)
+			ch.processResources(ctx, k8s, verifyK8SResource, resultCollector)
 		})
 	}
 
@@ -46,7 +46,6 @@ func (ch *CachedResponses) process(
 func (ch *CachedResponses) processResources(
 	ctx context.Context,
 	cfg *config.Domain,
-	tag string,
 	verifyResource func(context.Context, *config.Resource) (*Response, int),
 	resultCollector *ResultCollector,
 ) {
@@ -54,7 +53,7 @@ func (ch *CachedResponses) processResources(
 		return
 	}
 
-	resultCollector.Data.Store(tag, make([]*Response, 0))
+	resultCollector.Data.Store(cfg.Tag, make([]*Response, 0))
 
 	wg := sync.WaitGroup{}
 	wg.Add(len(cfg.Resources))
@@ -65,14 +64,14 @@ func (ch *CachedResponses) processResources(
 
 			resp, respStatus := verifyResource(ctx, rc)
 
-			value, _ := resultCollector.Data.Load(tag)
+			value, _ := resultCollector.Data.Load(cfg.Tag)
 			l, _ := value.([]*Response)
 			l = append(l, resp)
-			resultCollector.Data.Store(tag, l)
+			resultCollector.Data.Store(cfg.Tag, l)
 
 			retryStatus := ch.updateRetryState(
 				h.Retry.MaxRetries,
-				hashMultipleStrings(tag, h.Name, h.URL),
+				hashMultipleStrings(cfg.Tag, h.Name, h.URL),
 				respStatus,
 			)
 			if retryStatus == http.StatusOK && respStatus != http.StatusOK {

@@ -64,6 +64,7 @@ type Healthcheck struct {
 
 type Domain struct {
 	Enabled   bool       `yaml:"enabled"`
+	Tag       string     `yaml:"tag"`
 	Resources []Resource `yaml:"resources"`
 }
 
