@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/openkcm/checker/compare/v0.3.0...v0.3.1) (2026-02-27)
+
+
+### Bug Fixes
+
+* include back the tag configuration ([#143](https://github.com/openkcm/checker/issues/143)) ([fe6cd69](https://github.com/openkcm/checker/commit/fe6cd6929d1b2828ae563c1bf2b781e512a28202))
+
 ## [0.3.0](https://github.com/openkcm/checker/compare/v0.2.5...v0.3.0) (2026-02-27)
 
 
