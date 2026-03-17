@@ -24,6 +24,7 @@ func (ch *CachedResponses) process(
 		if cluster.Tag == "" {
 			cluster.Tag = "cluster"
 		}
+
 		wg.Go(func() {
 			ch.processResources(ctx, cluster, verifyServiceResource, resultCollector)
 		})
@@ -34,6 +35,7 @@ func (ch *CachedResponses) process(
 		if k8s.Tag == "" {
 			k8s.Tag = "kubernetes"
 		}
+
 		wg.Go(func() {
 			ch.processResources(ctx, k8s, verifyK8SResource, resultCollector)
 		})
@@ -44,6 +46,7 @@ func (ch *CachedResponses) process(
 		if linkerd.Tag == "" {
 			linkerd.Tag = "linkerd"
 		}
+
 		wg.Go(func() {
 			ch.processLinkerdResources(ctx, linkerd, resultCollector)
 		})
