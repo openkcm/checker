@@ -1,0 +1,47 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+version: 2
+language: "en-US"
+early_access: false
+
+reviews:
+  profile: "assertive"
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  review_status: true
+  collapse_walkthrough: false
+
+  auto_review:
+    enabled: true
+    drafts: false
+    labels:
+      - "!dependabot"
+      - "!dependencies"
+      - "!skip-review"
+      - "!automated-pr"
+
+  path_filters:
+    - "!**/*.out"
+    - "!**/*.html"
+    - "!**/mocks/**"
+    - "!**/*_mock.go"
+
+  path_instructions:
+    - path: "**/*.go"
+      instructions: |
+        Prioritize identifying security vulnerabilities, unhandled errors, and concurrency issues (e.g., goroutine leaks, race conditions).
+        Enforce idiomatic Go best practices. Do not nitpick formatting if it contradicts standard `gofmt` or `goimports` behavior.
+    - path: "**/Dockerfile*"
+      instructions: |
+        Review Dockerfiles for multi-stage build efficiency, principle of least privilege, and hardcoded secrets.
+
+chat:
+  auto_reply: true
+
+code_generation:
+  docstrings:
+    language: "en-US"
+  unit_tests:
+    path_instructions:
+      - path: "**/*.go"
+        instructions: "Use standard library testing and table-driven tests for Go."
