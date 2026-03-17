@@ -19,16 +19,24 @@ func (ch *CachedResponses) process(
 ) {
 	wg := sync.WaitGroup{}
 
-	service := &cfg.Cluster
-	if service.Enabled && len(service.Resources) > 0 {
+	cluster := &cfg.Cluster
+	if cluster.Enabled && len(cluster.Resources) > 0 {
 		wg.Go(func() {
-			ch.processResources(ctx, service, verifyServiceResource, resultCollector)
+			if cluster.Tag == "" {
+				cluster.Tag = "cluster"
+			}
+
+			ch.processResources(ctx, cluster, verifyServiceResource, resultCollector)
 		})
 	}
 
 	k8s := &cfg.Kubernetes
 	if k8s.Enabled && len(k8s.Resources) > 0 {
 		wg.Go(func() {
+			if k8s.Tag == "" {
+				k8s.Tag = "kubernetes"
+			}
+
 			ch.processResources(ctx, k8s, verifyK8SResource, resultCollector)
 		})
 	}
@@ -36,6 +44,10 @@ func (ch *CachedResponses) process(
 	linkerd := &cfg.Linkerd
 	if linkerd.Enabled {
 		wg.Go(func() {
+			if linkerd.Tag == "" {
+				linkerd.Tag = "linkerd"
+			}
+
 			ch.processLinkerdResources(ctx, linkerd, resultCollector)
 		})
 	}
