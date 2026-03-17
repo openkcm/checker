@@ -1,0 +1,30 @@
+version: 2
+language: "en-US"
+early_access: false
+
+reviews:
+  profile: "assertive"
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  review_status: true
+  collapse_walkthrough: false
+
+  auto_review:
+    enabled: true
+    drafts: false
+
+  ignore_custom_labels:
+    - "dependabot"
+    - "dependencies"
+    - "skip-review"
+    - "automated-pr"
+
+chat:
+  auto_reply: true
+
+custom_instructions: |
+  - Prioritize identifying security vulnerabilities, unhandled errors, and concurrency issues (e.g., goroutine leaks, race conditions).
+  - Enforce idiomatic Go best practices. Do not nitpick formatting if it contradicts standard `gofmt` or `goimports` behavior.
+  - Review Dockerfiles for multi-stage build efficiency, principle of least privilege, and hardcoded secrets.
+  - Ignore coverage artifacts (.out, .html), generated mock files, and compiled binaries during analysis.
