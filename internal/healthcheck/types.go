@@ -4,6 +4,8 @@ const (
 	OK                            = "OK"
 	OK_TOLERATED_FAILURE_ON_RETRY = "OK [FAILURE TOLERATED ON RETRY]"
 	NOTOK                         = "NOT OK"
+	ERR_BAD_REQUEST               = "Bad Request"
+	ERR_READING_RESPONSE_BODY     = "Reading Response Body"
 )
 
 type Response struct {

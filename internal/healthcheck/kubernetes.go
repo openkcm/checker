@@ -39,7 +39,7 @@ func verifyK8SResource(ctx context.Context, rc *config.Resource) (*Response, int
 	if err != nil {
 		errors = append(errors, ErrorResponse{
 			Message: err.Error(),
-			Error:   "Bad Request",
+			Error:   ERR_BAD_REQUEST,
 		})
 		response.Errors = errors
 		response.Status = NOTOK
@@ -51,7 +51,7 @@ func verifyK8SResource(ctx context.Context, rc *config.Resource) (*Response, int
 	if err != nil {
 		errors = append(errors, ErrorResponse{
 			Message: err.Error(),
-			Error:   "Bad Request",
+			Error:   ERR_BAD_REQUEST,
 		})
 		response.Errors = errors
 		response.Status = NOTOK
@@ -63,7 +63,7 @@ func verifyK8SResource(ctx context.Context, rc *config.Resource) (*Response, int
 	if err != nil {
 		errors = append(errors, ErrorResponse{
 			Message: err.Error(),
-			Error:   "Bad Request",
+			Error:   ERR_BAD_REQUEST,
 		})
 		response.Errors = errors
 		response.Status = NOTOK
@@ -77,7 +77,7 @@ func verifyK8SResource(ctx context.Context, rc *config.Resource) (*Response, int
 	if err != nil {
 		errors = append(errors, ErrorResponse{
 			Message: err.Error(),
-			Error:   "Bad Request",
+			Error:   ERR_BAD_REQUEST,
 		})
 		response.Errors = errors
 		response.Status = NOTOK
@@ -89,7 +89,7 @@ func verifyK8SResource(ctx context.Context, rc *config.Resource) (*Response, int
 	if err != nil {
 		errors = append(errors, ErrorResponse{
 			Message: err.Error(),
-			Error:   "Reading Response Body",
+			Error:   ERR_READING_RESPONSE_BODY,
 		})
 		response.Errors = errors
 		response.Status = NOTOK
@@ -104,7 +104,7 @@ func verifyK8SResource(ctx context.Context, rc *config.Resource) (*Response, int
 	if err != nil {
 		errors = append(errors, ErrorResponse{
 			Message: err.Error(),
-			Error:   "Reading Response Body",
+			Error:   ERR_READING_RESPONSE_BODY,
 		})
 		response.Errors = errors
 		response.Status = NOTOK
