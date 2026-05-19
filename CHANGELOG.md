@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.3.2](https://github.com/openkcm/checker/compare/v0.3.1...v0.3.2) (2026-05-18)
+
+
+### Bug Fixes
+
+* add coderabbit file ([#157](https://github.com/openkcm/checker/issues/157)) ([6e38f83](https://github.com/openkcm/checker/commit/6e38f8364cea0657134610fbe2bd65723d2a217c))
+* add default tag name if was missed from configuration ([#158](https://github.com/openkcm/checker/issues/158)) ([124fe30](https://github.com/openkcm/checker/commit/124fe30f5cb7b26deb6aefd2eeeceba7266946a8))
+* **deps:** bump go.opentelemetry.io/otel/metric from 1.40.0 to 1.42.0 ([#149](https://github.com/openkcm/checker/issues/149)) ([70d4fe5](https://github.com/openkcm/checker/commit/70d4fe5e85e90a65f8adeb1eb47a6cc77f7b9a3c))
+* **deps:** bump go.opentelemetry.io/otel/trace from 1.40.0 to 1.42.0 ([#151](https://github.com/openkcm/checker/issues/151)) ([0f708d9](https://github.com/openkcm/checker/commit/0f708d91bc1efa5672150edc550521b2cb574ea6))
+* **deps:** bump google.golang.org/grpc from 1.79.2 to 1.79.3 ([#159](https://github.com/openkcm/checker/issues/159)) ([9e53fe2](https://github.com/openkcm/checker/commit/9e53fe2e8e91c70c9dfebf3b591690021873da29))
+* **deps:** bump linkerd2 from edge-26.1.2 to edge-26.5.2 ([#170](https://github.com/openkcm/checker/issues/170)) ([64057fd](https://github.com/openkcm/checker/commit/64057fd708ce9246ef669834eecf10bdd9e87817))
+* **deps:** bump the gomod-group group with 2 updates ([#156](https://github.com/openkcm/checker/issues/156)) ([f63c728](https://github.com/openkcm/checker/commit/f63c728b066aa6661ab2498f27cef92d61150d2d))
+* extract repeated error strings into named constants ([#171](https://github.com/openkcm/checker/issues/171)) ([94351f8](https://github.com/openkcm/checker/commit/94351f86ef642a3eb7336950c4313630612cd0d2))
+* Update dependabot config ([#155](https://github.com/openkcm/checker/issues/155)) ([f1432a2](https://github.com/openkcm/checker/commit/f1432a2a52d61e100a38d676369d69fe8fb8f208))
+
 ## [0.3.1](https://github.com/openkcm/checker/compare/v0.3.0...v0.3.1) (2026-02-27)
 
 
