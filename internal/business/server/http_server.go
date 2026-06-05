@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 
+	"github.com/openkcm/common-sdk/pkg/middleware"
 	"github.com/samber/oops"
 
 	slogctx "github.com/veqryn/slog-context"
@@ -50,8 +51,10 @@ func createHTTPServer(ctx context.Context, cfg *config.Config) *http.Server {
 	slogctx.Info(ctx, "Creating HTTP server", "address", cfg.Server.Address)
 
 	return &http.Server{
-		Addr:    cfg.Server.Address,
-		Handler: mux,
+		Addr: cfg.Server.Address,
+		Handler: middleware.SecurityHeadersMiddleware(mux, map[string]string{
+			"Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none';",
+		}),
 	}
 }
 
