@@ -7,13 +7,13 @@ toolchain go1.26.4
 require (
 	github.com/google/uuid v1.6.0
 	github.com/linkerd/linkerd2 v0.5.1-0.20260515142927-3e3e78729233 //edge-26.5.2
-	github.com/openkcm/common-sdk v1.16.1
+	github.com/openkcm/common-sdk v1.17.0
 	github.com/samber/oops v1.22.0
 	github.com/veqryn/slog-context v0.9.0
 	go.opentelemetry.io/otel v1.44.0
 	go.opentelemetry.io/otel/metric v1.44.0
 	go.opentelemetry.io/otel/trace v1.44.0
-	k8s.io/client-go v0.36.1
+	k8s.io/client-go v0.36.2
 )
 
 require (
@@ -131,13 +131,13 @@ require (
 	gopkg.in/evanphx/json-patch.v4 v4.13.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	helm.sh/helm/v3 v3.21.0 // indirect
-	k8s.io/api v0.36.1 // indirect
+	k8s.io/api v0.36.2 // indirect
 	k8s.io/apiextensions-apiserver v0.35.4 // indirect
-	k8s.io/apimachinery v0.36.1 // indirect
+	k8s.io/apimachinery v0.36.2 // indirect
 	k8s.io/klog/v2 v2.140.0 // indirect
 	k8s.io/kube-aggregator v0.35.4 // indirect
 	k8s.io/kube-openapi v0.0.0-20260317180543-43fb72c5454a // indirect
-	k8s.io/streaming v0.36.1 // indirect
+	k8s.io/streaming v0.36.2 // indirect
 	k8s.io/utils v0.0.0-20260210185600-b8788abfbbc2 // indirect
 	sigs.k8s.io/gateway-api v0.8.1 // indirect
 	sigs.k8s.io/json v0.0.0-20250730193827-2d320260d730 // indirect
