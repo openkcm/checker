@@ -26,6 +26,7 @@ healthcheck:
   endpoint: "/healthz"
   enabled: true
   refreshDuration: 3s
+  maskURLs: false
   cluster:
     enabled: true
     resources:
