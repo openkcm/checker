@@ -2,6 +2,8 @@ module github.com/openkcm/checker
 
 go 1.26.5
 
+toolchain go1.26.5
+
 require (
 	github.com/google/uuid v1.6.0
 	github.com/linkerd/linkerd2 v0.5.1-0.20260515142927-3e3e78729233 //edge-26.5.2
