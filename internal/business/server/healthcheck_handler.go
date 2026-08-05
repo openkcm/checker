@@ -21,6 +21,49 @@ import (
 	"github.com/openkcm/checker/internal/healthcheck"
 )
 
+func maskResponse(r *healthcheck.Response) *healthcheck.Response {
+	cloned := *r
+	cloned.URL = "****"
+
+	if len(r.Errors) > 0 {
+		maskedErrors := make([]healthcheck.ErrorResponse, len(r.Errors))
+
+		for i, e := range r.Errors {
+			maskedErrors[i] = e
+			if maskedErrors[i].Message != "" {
+				maskedErrors[i].Message = "****"
+			}
+		}
+
+		cloned.Errors = maskedErrors
+	}
+
+	return &cloned
+}
+
+func maskURLs(response map[string]any) map[string]any {
+	masked := make(map[string]any, len(response))
+
+	for k, v := range response {
+		switch val := v.(type) {
+		case []*healthcheck.Response:
+			maskedList := make([]*healthcheck.Response, len(val))
+
+			for i, r := range val {
+				maskedList[i] = maskResponse(r)
+			}
+
+			masked[k] = maskedList
+		case *healthcheck.Response:
+			masked[k] = maskResponse(val)
+		default:
+			masked[k] = v
+		}
+	}
+
+	return masked
+}
+
 func healthcheckHandlerFunc(operation string, cfg *config.Config, ch *healthcheck.CachedResponses) func(http.ResponseWriter, *http.Request) {
 	traceAttrs := otlp.CreateAttributesFrom(cfg.Application,
 		attribute.String(commoncfg.AttrOperation, operation),
@@ -68,11 +111,18 @@ func healthcheckHandlerFunc(operation string, cfg *config.Config, ch *healthchec
 
 		w.Header().Set("Content-Type", "application/json")
 
+		rawResponse := ch.Response()
+		response := rawResponse
+
+		if cfg.Healthcheck.MaskURLs {
+			response = maskURLs(rawResponse)
+		}
+
 		w.WriteHeader(ch.Status())
-		_ = json.NewEncoder(w).Encode(ch.Response())
+		_ = json.NewEncoder(w).Encode(response)
 
 		slogctx.Info(ctx, fmt.Sprintf("Finished %s request", operation),
-			"durationMs", time.Since(requestStartTime)/time.Millisecond, "response", ch.Response(), "status", ch.Status())
+			"durationMs", time.Since(requestStartTime)/time.Millisecond, "response", rawResponse, "status", ch.Status())
 		// End Business Logic
 	}
 }

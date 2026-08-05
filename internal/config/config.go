@@ -57,6 +57,7 @@ type Healthcheck struct {
 	Name            string        `yaml:"name" default:"healthcheck"`
 	Endpoint        string        `yaml:"endpoint" default:"/healthz"`
 	RefreshDuration time.Duration `yaml:"refreshDuration" default:"5s"`
+	MaskURLs        bool          `yaml:"maskURLs" default:"false"`
 	Cluster         Domain        `yaml:"cluster"`
 	Kubernetes      Domain        `yaml:"kubernetes"`
 	Linkerd         Linkerd       `yaml:"linkerd"`
