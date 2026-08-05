@@ -52,9 +52,9 @@ func createHTTPServer(ctx context.Context, cfg *config.Config) *http.Server {
 
 	return &http.Server{
 		Addr: cfg.Server.Address,
-		Handler: middleware.SecurityHeadersMiddleware(mux, map[string]string{
+		Handler: middleware.SecurityHeadersMiddleware(map[string]string{
 			"Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none';",
-		}),
+		})(mux),
 	}
 }
 
