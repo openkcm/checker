@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"time"
+	"uuid"
 
-	"github.com/google/uuid"
 	"github.com/openkcm/common-sdk/pkg/commoncfg"
 	"github.com/openkcm/common-sdk/pkg/otlp"
 	"go.opentelemetry.io/otel"
