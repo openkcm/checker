@@ -39,10 +39,23 @@ func verifyLinkerd(ctx context.Context, cfg *config.Linkerd) (*Response, int) {
 		APIAddr:               "",
 		VersionOverride:       "",
 		RetryDeadline:         time.Now().Add(time.Duration(cfg.RetryDeadline) * time.Second),
-		CNIEnabled:            cfg.Enabled,
+		CNIEnabled:            cfg.CNIEnabled,
 		InstallManifest:       "",
 		CRDManifest:           crdManifest.String(),
 	})
+
+	// Initialize the Kubernetes API client before running checks
+	err := hc.InitializeKubeAPIClient()
+	if err != nil {
+		slogctx.Error(ctx, "Failed to initialize Kubernetes API client for linkerd healthcheck", "error", err)
+		return &Response{
+			Status: NOTOK,
+			Errors: []ErrorResponse{{
+				Error:   err.Error(),
+				Message: "Failed to initialize Kubernetes API client",
+			}},
+		}, http.StatusServiceUnavailable
+	}
 
 	// Run the healthchecks using the new API
 	success, _ := hc.RunChecks(func(result *healthcheck.CheckResult) {
