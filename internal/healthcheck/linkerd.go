@@ -48,6 +48,7 @@ func verifyLinkerd(ctx context.Context, cfg *config.Linkerd) (*Response, int) {
 	err := hc.InitializeKubeAPIClient()
 	if err != nil {
 		slogctx.Error(ctx, "Failed to initialize Kubernetes API client for linkerd healthcheck", "error", err)
+
 		return &Response{
 			Status: NOTOK,
 			Errors: []ErrorResponse{{
