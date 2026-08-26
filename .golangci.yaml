@@ -7,11 +7,7 @@ run:
 linters:
   default: all
   disable:
-    - wastedassign
-    - staticcheck
-    - ineffassign
     - bodyclose
-    - gomoddirectives
     - contextcheck
     - cyclop
     - depguard
@@ -19,6 +15,7 @@ linters:
     - err113
     - exhaustive
     - exhaustruct
+    - exhaustruct_v5
     - forbidigo
     - funlen
     - ginkgolinter
@@ -28,8 +25,10 @@ linters:
     - gocritic
     - godot
     - godox
+    - gomoddirectives
     - gomodguard
     - gosec
+    - ineffassign
     - ireturn
     - lll
     - mnd
@@ -37,10 +36,12 @@ linters:
     - nestif
     - nlreturn
     - revive
+    - staticcheck
     - tagalign
     - testpackage
     - unparam
     - varnamelen
+    - wastedassign
     - wrapcheck
     - wsl
   settings:
