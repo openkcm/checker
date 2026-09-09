@@ -1,9 +1,10 @@
 module github.com/openkcm/checker
 
-go 1.26.6
+go 1.27
+
+toolchain go1.27.1
 
 require (
-	github.com/google/uuid v1.6.0
 	github.com/linkerd/linkerd2 v0.5.1-0.20260812204504-2f74727508b7 //edge-26.8.2
 	github.com/openkcm/common-sdk v1.19.1
 	github.com/samber/oops v1.23.0
@@ -57,6 +58,7 @@ require (
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/gnostic-models v0.7.1 // indirect
+	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/websocket v1.5.4-0.20250319132907-e064f32e3674 // indirect
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.29.0 // indirect
