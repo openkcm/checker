@@ -120,6 +120,24 @@ func TestHealthcheckHandlerFuncMasksURLs(t *testing.T) {
 	}
 }
 
+func TestHealthcheckHandlerFuncNotReady(t *testing.T) {
+	// A zero-value cache has never refreshed, so Status() returns 0. The handler
+	// must report "not ready" (503) rather than panic on WriteHeader(0).
+	cache := &healthcheck.CachedResponses{}
+
+	cfg := &config.Config{}
+	handler := healthcheckHandlerFunc("healthcheck", cfg, cache)
+
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/healthz", nil)
+	rec := httptest.NewRecorder()
+
+	handler(rec, req)
+
+	if rec.Code != http.StatusServiceUnavailable {
+		t.Errorf("status = %d, want 503", rec.Code)
+	}
+}
+
 func TestMaskResponse(t *testing.T) {
 	in := &healthcheck.Response{
 		URL: "http://secret",

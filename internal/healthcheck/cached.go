@@ -25,7 +25,10 @@ type ResultCollector struct {
 
 func NewCachedResponses(ctx context.Context, cfg *config.Healthcheck) *CachedResponses {
 	cache := &CachedResponses{
-		retry: sync.Map{},
+		// Report "not ready" until the first refresh has completed, so callers
+		// never observe the zero-value status (which is an invalid HTTP code).
+		status: http.StatusServiceUnavailable,
+		retry:  sync.Map{},
 	}
 	go func(cfg *config.Healthcheck, ch *CachedResponses) {
 		ticker := time.NewTicker(cfg.RefreshDuration)
