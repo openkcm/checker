@@ -54,6 +54,7 @@ func TestVerifyChecksSuffix(t *testing.T) {
 	if errs := verifyChecks(checks, []byte("the end"), nil, nil); len(errs) != 0 {
 		t.Errorf("expected suffix match, got %v", errs)
 	}
+
 	if errs := verifyChecks(checks, []byte("end first"), nil, nil); len(errs) != 1 {
 		t.Errorf("expected suffix mismatch, got %v", errs)
 	}
@@ -65,6 +66,7 @@ func TestVerifyChecksPrefix(t *testing.T) {
 	if errs := verifyChecks(checks, []byte("start here"), nil, nil); len(errs) != 0 {
 		t.Errorf("expected prefix match, got %v", errs)
 	}
+
 	if errs := verifyChecks(checks, []byte("no start"), nil, nil); len(errs) != 1 {
 		t.Errorf("expected prefix mismatch, got %v", errs)
 	}
@@ -76,6 +78,7 @@ func TestVerifyChecksEqual(t *testing.T) {
 	if errs := verifyChecks(checks, []byte("exact"), nil, nil); len(errs) != 0 {
 		t.Errorf("expected equal match, got %v", errs)
 	}
+
 	if errs := verifyChecks(checks, []byte("different"), nil, nil); len(errs) != 1 {
 		t.Errorf("expected equal mismatch, got %v", errs)
 	}

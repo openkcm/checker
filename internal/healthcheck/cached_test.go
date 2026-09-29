@@ -27,6 +27,7 @@ func TestGetSetRetry(t *testing.T) {
 	}
 
 	ch.SetRetry("k", 7)
+
 	if v := ch.GetRetry("k"); v != 7 {
 		t.Errorf("k = %d, want 7", v)
 	}
@@ -51,6 +52,7 @@ func TestStatusAndResponseAccessors(t *testing.T) {
 	if ch.Status() != http.StatusServiceUnavailable {
 		t.Errorf("Status() = %d, want 503", ch.Status())
 	}
+
 	if ch.Response()["a"] != 1 {
 		t.Errorf("Response() = %v, want a=1", ch.Response())
 	}
@@ -74,6 +76,7 @@ func TestRefreshPopulatesResponse(t *testing.T) {
 	if _, ok := ch.Response()["cluster"]; !ok {
 		t.Error("expected cluster key in refreshed response")
 	}
+
 	if ch.Status() != http.StatusServiceUnavailable {
 		t.Errorf("status = %d, want 503", ch.Status())
 	}
@@ -99,6 +102,7 @@ func TestNewCachedResponsesRefreshesAndStops(t *testing.T) {
 		if _, ok := cache.Response()["cluster"]; ok {
 			break
 		}
+
 		time.Sleep(5 * time.Millisecond)
 	}
 

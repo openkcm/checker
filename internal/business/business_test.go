@@ -18,7 +18,8 @@ func TestMainGracefulShutdown(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 75*time.Millisecond)
 	defer cancel()
 
-	if err := Main(ctx, cfg); err != nil {
+	err := Main(ctx, cfg)
+	if err != nil {
 		t.Fatalf("Main returned error: %v", err)
 	}
 }
@@ -28,7 +29,8 @@ func TestMainListenError(t *testing.T) {
 	cfg.Application.Name = "checker"
 	cfg.Server = config.Server{Address: "127.0.0.1:999999", ShutdownTimeout: time.Second}
 
-	if err := Main(context.Background(), cfg); err == nil {
+	err := Main(context.Background(), cfg)
+	if err == nil {
 		t.Fatal("expected error for invalid listen address")
 	}
 }

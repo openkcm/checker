@@ -30,21 +30,21 @@ func testConfigWithHandlers() *config.Config {
 }
 
 func TestCreateHTTPServerRegistersHandlers(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	srv := createHTTPServer(ctx, testConfigWithHandlers())
 
 	if srv.Addr != "127.0.0.1:0" {
 		t.Errorf("addr = %q, want 127.0.0.1:0", srv.Addr)
 	}
+
 	if srv.Handler == nil {
 		t.Fatal("expected a handler to be configured")
 	}
 
 	// The registered endpoints should respond (not 404) through the mux.
 	for _, path := range []string{"/healthz", "/healthz2", "/versions"} {
-		req := httptest.NewRequest(http.MethodGet, path, nil)
+		req := httptest.NewRequestWithContext(ctx, http.MethodGet, path, nil)
 		rec := httptest.NewRecorder()
 		srv.Handler.ServeHTTP(rec, req)
 
@@ -61,7 +61,8 @@ func TestStartHTTPServerGracefulShutdown(t *testing.T) {
 	defer cancel()
 
 	// StartHTTPServer blocks until the context is cancelled, then shuts down.
-	if err := StartHTTPServer(ctx, cfg); err != nil {
+	err := StartHTTPServer(ctx, cfg)
+	if err != nil {
 		t.Fatalf("StartHTTPServer returned error: %v", err)
 	}
 }

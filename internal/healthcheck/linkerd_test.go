@@ -25,6 +25,7 @@ func TestVerifyLinkerdInitFailure(t *testing.T) {
 	if status != http.StatusServiceUnavailable {
 		t.Errorf("status = %d, want 503", status)
 	}
+
 	if resp.Status != NOTOK || len(resp.Errors) == 0 {
 		t.Errorf("expected NOTOK with errors, got %+v", resp)
 	}

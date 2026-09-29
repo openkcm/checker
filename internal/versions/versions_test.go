@@ -35,9 +35,11 @@ func TestQuerySuccess(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected *Response for svc, got %T", got["svc"])
 	}
+
 	if res.Status != OK {
 		t.Errorf("status = %q, want %q", res.Status, OK)
 	}
+
 	result, ok := res.Result.(map[string]any)
 	if !ok || result["version"] != "1.2.3" {
 		t.Errorf("result = %v, want version 1.2.3", res.Result)
@@ -52,10 +54,15 @@ func TestQueryCallError(t *testing.T) {
 
 	got := Query(context.Background(), cfg)
 
-	res := got["svc"].(*Response)
+	res, ok := got["svc"].(*Response)
+	if !ok {
+		t.Fatalf("svc has type %T, want *Response", got["svc"])
+	}
+
 	if res.Status != NOTOK {
 		t.Errorf("status = %q, want %q", res.Status, NOTOK)
 	}
+
 	if res.Error == nil {
 		t.Fatal("expected error response, got nil")
 	}
@@ -69,7 +76,12 @@ func TestUnmarshalValueSuccess(t *testing.T) {
 	if res.Status != OK {
 		t.Errorf("status = %q, want OK", res.Status)
 	}
-	result := res.Result.(map[string]any)
+
+	result, ok := res.Result.(map[string]any)
+	if !ok {
+		t.Fatalf("result has type %T, want map[string]any", res.Result)
+	}
+
 	if result["a"] != "b" {
 		t.Errorf("result = %v, want a=b", res.Result)
 	}
@@ -84,9 +96,11 @@ func TestUnmarshalValueExtractError(t *testing.T) {
 	if res.Status != NOTOK {
 		t.Errorf("status = %q, want NOT OK", res.Status)
 	}
+
 	if res.Result != nil {
 		t.Errorf("result = %v, want nil", res.Result)
 	}
+
 	if res.Error == nil {
 		t.Fatal("expected error response, got nil")
 	}
@@ -101,9 +115,11 @@ func TestUnmarshalValueInvalidJSON(t *testing.T) {
 	if res.Status != NOTOK {
 		t.Errorf("status = %q, want NOT OK", res.Status)
 	}
+
 	if res.Result != nil {
 		t.Errorf("result = %v, want nil", res.Result)
 	}
+
 	if res.Error == nil {
 		t.Fatal("expected error response, got nil")
 	}
@@ -119,6 +135,7 @@ func TestCallSuccess(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
+
 	if string(body) != "payload" {
 		t.Errorf("body = %q, want payload", body)
 	}

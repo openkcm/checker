@@ -15,7 +15,8 @@ import (
 // TestMain initialises the package-level meters once so handler tests that
 // record metrics do not hit a nil counter/histogram.
 func TestMain(m *testing.M) {
-	if err := initMeters(context.Background(), &config.Config{}); err != nil {
+	err := initMeters(context.Background(), &config.Config{})
+	if err != nil {
 		panic(err)
 	}
 
@@ -52,6 +53,7 @@ func newPopulatedCache(t *testing.T, backendBody string) *healthcheck.CachedResp
 		if _, ok := cache.Response()["cluster"]; ok {
 			return cache
 		}
+
 		time.Sleep(5 * time.Millisecond)
 	}
 
@@ -66,7 +68,7 @@ func TestHealthcheckHandlerFunc(t *testing.T) {
 	cfg := &config.Config{}
 	handler := healthcheckHandlerFunc("healthcheck", cfg, cache)
 
-	req := httptest.NewRequest(http.MethodGet, "/healthz", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/healthz", nil)
 	rec := httptest.NewRecorder()
 
 	handler(rec, req)
@@ -74,14 +76,18 @@ func TestHealthcheckHandlerFunc(t *testing.T) {
 	if rec.Code != http.StatusOK {
 		t.Errorf("status = %d, want 200", rec.Code)
 	}
+
 	if ct := rec.Header().Get("Content-Type"); ct != "application/json" {
 		t.Errorf("content-type = %q, want application/json", ct)
 	}
 
 	var body map[string]any
-	if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {
+
+	err := json.Unmarshal(rec.Body.Bytes(), &body)
+	if err != nil {
 		t.Fatalf("response not valid JSON: %v", err)
 	}
+
 	if _, ok := body["cluster"]; !ok {
 		t.Error("expected cluster key in response body")
 	}
@@ -95,15 +101,18 @@ func TestHealthcheckHandlerFuncMasksURLs(t *testing.T) {
 
 	handler := healthcheckHandlerFunc("healthcheck", cfg, cache)
 
-	req := httptest.NewRequest(http.MethodGet, "/healthz", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/healthz", nil)
 	rec := httptest.NewRecorder()
 
 	handler(rec, req)
 
 	var body map[string][]*healthcheck.Response
-	if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {
+
+	err := json.Unmarshal(rec.Body.Bytes(), &body)
+	if err != nil {
 		t.Fatalf("response not valid JSON: %v", err)
 	}
+
 	for _, r := range body["cluster"] {
 		if r.URL != "****" {
 			t.Errorf("expected masked URL, got %q", r.URL)
@@ -125,9 +134,11 @@ func TestMaskResponse(t *testing.T) {
 	if out.URL != "****" {
 		t.Errorf("URL = %q, want ****", out.URL)
 	}
+
 	if out.Errors[0].Message != "****" {
 		t.Errorf("error message not masked: %q", out.Errors[0].Message)
 	}
+
 	if out.Errors[1].Message != "" {
 		t.Errorf("empty message should stay empty, got %q", out.Errors[1].Message)
 	}
@@ -146,12 +157,24 @@ func TestMaskURLs(t *testing.T) {
 
 	masked := maskURLs(response)
 
-	if masked["list"].([]*healthcheck.Response)[0].URL != "****" {
+	list, ok := masked["list"].([]*healthcheck.Response)
+	if !ok {
+		t.Fatalf("list has type %T, want []*healthcheck.Response", masked["list"])
+	}
+
+	if list[0].URL != "****" {
 		t.Error("list response URL not masked")
 	}
-	if masked["single"].(*healthcheck.Response).URL != "****" {
+
+	single, ok := masked["single"].(*healthcheck.Response)
+	if !ok {
+		t.Fatalf("single has type %T, want *healthcheck.Response", masked["single"])
+	}
+
+	if single.URL != "****" {
 		t.Error("single response URL not masked")
 	}
+
 	if masked["other"] != "left-alone" {
 		t.Error("non-response value should be passed through unchanged")
 	}

@@ -25,6 +25,7 @@ func TestVerifyServiceResourceSuccess(t *testing.T) {
 	if status != http.StatusOK {
 		t.Errorf("status = %d, want 200", status)
 	}
+
 	if resp.Status != OK {
 		t.Errorf("resp.Status = %q, want OK", resp.Status)
 	}
@@ -46,6 +47,7 @@ func TestVerifyServiceResourceCheckFails(t *testing.T) {
 	if status != http.StatusServiceUnavailable {
 		t.Errorf("status = %d, want 503", status)
 	}
+
 	if resp.Status != NOTOK || len(resp.Errors) == 0 {
 		t.Errorf("expected NOTOK with errors, got %+v", resp)
 	}
@@ -58,6 +60,7 @@ func TestVerifyServiceResourceBadRequest(t *testing.T) {
 	if status != http.StatusServiceUnavailable {
 		t.Errorf("status = %d, want 503", status)
 	}
+
 	if resp.Errors[0].Error != ERR_BAD_REQUEST {
 		t.Errorf("expected bad request error, got %+v", resp.Errors)
 	}
@@ -75,6 +78,7 @@ func TestVerifyServiceResourceDoError(t *testing.T) {
 	if status != http.StatusServiceUnavailable {
 		t.Errorf("status = %d, want 503", status)
 	}
+
 	if resp.Status != NOTOK {
 		t.Errorf("resp.Status = %q, want NOT OK", resp.Status)
 	}

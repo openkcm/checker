@@ -43,16 +43,18 @@ func TestContainerConcurrentAccess(t *testing.T) {
 	c := NewContainerWithDefault[int](0)
 
 	var wg sync.WaitGroup
-	for i := 0; i < 50; i++ {
+	for i := range 50 {
 		wg.Add(2)
 
 		go func(v int) {
 			defer wg.Done()
+
 			c.Store(v)
 		}(i)
 
 		go func() {
 			defer wg.Done()
+
 			_ = c.Read()
 		}()
 	}

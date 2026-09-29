@@ -19,9 +19,11 @@ func TestVerifyK8SResourceBadKubeconfig(t *testing.T) {
 	if status != http.StatusServiceUnavailable {
 		t.Errorf("status = %d, want 503", status)
 	}
+
 	if resp.Status != NOTOK || len(resp.Errors) == 0 {
 		t.Errorf("expected NOTOK with errors, got %+v", resp)
 	}
+
 	if resp.Errors[0].Error != ERR_BAD_REQUEST {
 		t.Errorf("expected bad request error, got %q", resp.Errors[0].Error)
 	}

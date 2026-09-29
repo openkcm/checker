@@ -10,6 +10,7 @@ import (
 
 func TestHashMultipleStrings(t *testing.T) {
 	h1 := hashMultipleStrings("a", "b", "c")
+
 	h2 := hashMultipleStrings("a", "b", "c")
 	if h1 != h2 {
 		t.Error("hash should be deterministic")
@@ -41,6 +42,7 @@ func TestUpdateRetryStateSuccessResets(t *testing.T) {
 	if got := ch.updateRetryState(5, "k", http.StatusOK); got != http.StatusOK {
 		t.Errorf("got %d, want 200", got)
 	}
+
 	if v := ch.GetRetry("k"); v != 0 {
 		t.Errorf("retry counter = %d, want reset to 0", v)
 	}
@@ -54,6 +56,7 @@ func TestUpdateRetryStateToleratesUntilMax(t *testing.T) {
 	if got := ch.updateRetryState(2, key, http.StatusServiceUnavailable); got != http.StatusOK {
 		t.Errorf("first failure: got %d, want 200 (tolerated)", got)
 	}
+
 	if v := ch.GetRetry(key); v != 1 {
 		t.Errorf("counter = %d, want 1", v)
 	}
@@ -98,6 +101,7 @@ func TestProcessResourcesSuccessAndFailure(t *testing.T) {
 		if rc.Name == "bad" {
 			return &Response{Name: rc.Name, Status: NOTOK}, http.StatusServiceUnavailable
 		}
+
 		return &Response{Name: rc.Name, Status: OK}, http.StatusOK
 	}
 
@@ -107,9 +111,16 @@ func TestProcessResourcesSuccessAndFailure(t *testing.T) {
 	if !ok {
 		t.Fatal("expected data for cluster tag")
 	}
-	if got := len(value.([]*Response)); got != 2 {
+
+	responses, ok := value.([]*Response)
+	if !ok {
+		t.Fatalf("stored value has type %T, want []*Response", value)
+	}
+
+	if got := len(responses); got != 2 {
 		t.Errorf("stored %d responses, want 2", got)
 	}
+
 	if rc.Status.Read() != http.StatusServiceUnavailable {
 		t.Errorf("collector status = %d, want 503", rc.Status.Read())
 	}
@@ -131,10 +142,17 @@ func TestProcessResourcesToleratedOnRetry(t *testing.T) {
 	ch.processResources(context.Background(), cfg, verify, rc)
 
 	value, _ := rc.Data.Load("cluster")
-	resp := value.([]*Response)[0]
+
+	responses, ok := value.([]*Response)
+	if !ok {
+		t.Fatalf("stored value has type %T, want []*Response", value)
+	}
+
+	resp := responses[0]
 	if resp.Status != OK_TOLERATED_FAILURE_ON_RETRY {
 		t.Errorf("status = %q, want tolerated-failure marker", resp.Status)
 	}
+
 	if rc.Status.Read() != http.StatusOK {
 		t.Errorf("collector status = %d, want 200 (tolerated)", rc.Status.Read())
 	}
@@ -161,9 +179,11 @@ func TestProcessDispatchesEnabledDomains(t *testing.T) {
 	if cfg.Cluster.Tag != "cluster" {
 		t.Errorf("cluster tag = %q, want cluster", cfg.Cluster.Tag)
 	}
+
 	if cfg.Kubernetes.Tag != "kubernetes" {
 		t.Errorf("kubernetes tag = %q, want kubernetes", cfg.Kubernetes.Tag)
 	}
+
 	if _, ok := rc.Data.Load("cluster"); !ok {
 		t.Error("expected cluster results to be collected")
 	}
@@ -199,6 +219,7 @@ func TestProcessLinkerdResources(t *testing.T) {
 	if _, ok := rc.Data.Load("linkerd"); !ok {
 		t.Error("expected linkerd result to be stored")
 	}
+
 	if rc.Status.Read() != http.StatusServiceUnavailable {
 		t.Errorf("status = %d, want 503", rc.Status.Read())
 	}
