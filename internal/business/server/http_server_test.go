@@ -29,10 +29,8 @@ func testConfigWithHandlers() *config.Config {
 	return cfg
 }
 
-func TestCreateHTTPServerRegistersHandlers(t *testing.T) {
-	ctx := t.Context()
-
-	srv := createHTTPServer(ctx, testConfigWithHandlers())
+func TestCreateHTTPServer(t *testing.T) {
+	srv := createHTTPServer(t.Context(), testConfigWithHandlers())
 
 	if srv.Addr != "127.0.0.1:0" {
 		t.Errorf("addr = %q, want 127.0.0.1:0", srv.Addr)
@@ -41,16 +39,31 @@ func TestCreateHTTPServerRegistersHandlers(t *testing.T) {
 	if srv.Handler == nil {
 		t.Fatal("expected a handler to be configured")
 	}
+}
 
-	// The registered endpoints should respond (not 404) through the mux.
+func TestRegisterHandlers(t *testing.T) {
+	mux := http.NewServeMux()
+
+	// registerHandlers spins up background refresh goroutines; t.Context() is
+	// cancelled at cleanup so they stop.
+	registerHandlers(t.Context(), mux, testConfigWithHandlers())
+
+	// Enabled endpoints must resolve to a registered pattern. Checking the
+	// matched pattern (rather than executing the handler) keeps this test free
+	// of the async cache-refresh race.
 	for _, path := range []string{"/healthz", "/healthz2", "/versions"} {
-		req := httptest.NewRequestWithContext(ctx, http.MethodGet, path, nil)
-		rec := httptest.NewRecorder()
-		srv.Handler.ServeHTTP(rec, req)
+		req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, path, nil)
 
-		if rec.Code == http.StatusNotFound {
-			t.Errorf("endpoint %q not registered (404)", path)
+		if _, pattern := mux.Handler(req); pattern == "" {
+			t.Errorf("endpoint %q not registered", path)
 		}
+	}
+
+	// A disabled healthcheck endpoint must not be registered.
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/disabled", nil)
+
+	if _, pattern := mux.Handler(req); pattern != "" {
+		t.Errorf("disabled endpoint should not be registered, got pattern %q", pattern)
 	}
 }
 
