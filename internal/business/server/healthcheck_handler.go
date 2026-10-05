@@ -118,11 +118,18 @@ func healthcheckHandlerFunc(operation string, cfg *config.Config, ch *healthchec
 			response = maskURLs(rawResponse)
 		}
 
-		w.WriteHeader(ch.Status())
+		// Guard against a not-yet-refreshed cache: a zero status is an invalid
+		// HTTP code and would make WriteHeader panic. Report "not ready" instead.
+		status := ch.Status()
+		if status == 0 {
+			status = http.StatusServiceUnavailable
+		}
+
+		w.WriteHeader(status)
 		_ = json.NewEncoder(w).Encode(response)
 
 		slogctx.Info(ctx, fmt.Sprintf("Finished %s request", operation),
-			"durationMs", time.Since(requestStartTime)/time.Millisecond, "response", rawResponse, "status", ch.Status())
+			"durationMs", time.Since(requestStartTime)/time.Millisecond, "response", rawResponse, "status", status)
 		// End Business Logic
 	}
 }
