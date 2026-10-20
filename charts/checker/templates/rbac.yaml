@@ -1,0 +1,93 @@
+{{- if .Values.rbac.create }}
+---
+# Read access for the Linkerd checks (config.healthcheck.linkerd). Each rule names the
+# categories of `linkerd check` that need it. The kubernetes checks need no rule: the default
+# role system:public-info-viewer lets every client read /version, /livez, /readyz and
+# /healthz of the API server.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "checker.fullname" . }}
+  labels:
+    {{- include "checker.labels" . | nindent 4 }}
+rules:
+  # Nodes, pods and services of the whole cluster: linkerd-existence (cluster networks
+  # contain all nodes, pods and services), linkerd-config (proxy-init runs as root),
+  # linkerd-control-plane-proxy, linkerd-data-plane, linkerd-identity-data-plane. The
+  # opaque ports check of linkerd-data-plane also watches pods, services and endpoints.
+  - apiGroups: [""]
+    resources: [nodes]
+    verbs: [list]
+  - apiGroups: [""]
+    resources: [pods, services, endpoints]
+    verbs: [list, watch]
+  # Namespaces: linkerd-config (control plane namespace exists), linkerd-data-plane (data
+  # plane namespace exists), linkerd-extension-checks.
+  - apiGroups: [""]
+    resources: [namespaces]
+    verbs: [get, list]
+  # ServiceAccounts: linkerd-existence, linkerd-config, linkerd-cni-plugin.
+  - apiGroups: [""]
+    resources: [serviceaccounts]
+    verbs: [get, list]
+  # Configuration of Linkerd, by name: linkerd-existence, linkerd-config, linkerd-identity,
+  # control-plane-version (linkerd-config); linkerd-control-plane-proxy,
+  # linkerd-identity-data-plane (linkerd-identity-trust-roots); linkerd-cni-plugin
+  # (linkerd-cni-config).
+  - apiGroups: [""]
+    resources: [configmaps]
+    resourceNames: [linkerd-config, linkerd-identity-trust-roots, linkerd-cni-config]
+    verbs: [get]
+  # Certificates of the identity issuer and of the webhooks, by name: linkerd-identity
+  # (linkerd-identity-issuer), linkerd-webhooks-and-apisvc-tls (the others; the names
+  # without `-k8s` are those of older Linkerd versions).
+  - apiGroups: [""]
+    resources: [secrets]
+    resourceNames:
+      - linkerd-identity-issuer
+      - linkerd-proxy-injector-k8s-tls
+      - linkerd-proxy-injector-tls
+      - linkerd-sp-validator-k8s-tls
+      - linkerd-sp-validator-tls
+      - linkerd-policy-validator-k8s-tls
+    verbs: [get]
+  # Control plane workloads: linkerd-existence (replica sets are ready), linkerd-ha-checks
+  # (deployments), linkerd-cni-plugin (daemon set).
+  - apiGroups: [apps]
+    resources: [replicasets]
+    verbs: [list]
+  - apiGroups: [apps]
+    resources: [deployments]
+    resourceNames: [linkerd-destination, linkerd-identity, linkerd-proxy-injector]
+    verbs: [get]
+  - apiGroups: [apps]
+    resources: [daemonsets]
+    resourceNames: [linkerd-cni]
+    verbs: [get]
+  # RBAC of the control plane: linkerd-config, linkerd-cni-plugin.
+  - apiGroups: [rbac.authorization.k8s.io]
+    resources: [clusterroles, clusterrolebindings]
+    verbs: [get, list]
+  # Webhooks of the control plane: linkerd-config, linkerd-webhooks-and-apisvc-tls.
+  - apiGroups: [admissionregistration.k8s.io]
+    resources: [mutatingwebhookconfigurations, validatingwebhookconfigurations]
+    verbs: [get, list]
+  {{- with .Values.rbac.extraRules }}
+  {{- toYaml . | nindent 2 }}
+  {{- end }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "checker.fullname" . }}
+  labels:
+    {{- include "checker.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "checker.fullname" . }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "checker.serviceAccountName" . }}
+    namespace: {{ include "checker.namespace" . }}
+{{- end }}

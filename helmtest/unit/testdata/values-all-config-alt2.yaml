@@ -1,0 +1,26 @@
+# Third example of each alternative that values.yaml documents under `config`
+# (TestConfigStrict).
+config:
+  # The checks of a resource with their defaults (type Contains, source ResponseBody).
+  healthcheck:
+    kubernetes:
+      resources:
+        - name: liveness
+          url: /livez
+          checks:
+            - value: "ok"
+
+  # Example: mTLS over HTTP with additional CAs and another server name.
+  telemetry:
+    traces:
+      enabled: true
+      protocol: http
+      host: { source: embedded, value: otel-collector.observability:4318 }
+      secretRef:
+        type: mtls
+        mtls:
+          cert: { source: file, file: { path: /etc/otel/tls.crt, format: binary } }
+          certKey: { source: file, file: { path: /etc/otel/tls.key, format: binary } }
+          rootCAs:
+            - { source: file, file: { path: /etc/otel/root-ca.crt, format: binary } }
+          attributes: { serverName: otel-collector.example.com }

@@ -1,0 +1,139 @@
+# Every setting that values.yaml documents under `config`, with the first example of each
+# alternative (TestConfigStrict). The other alternatives are in values-all-config-alt*.yaml.
+config:
+  environment: staging
+  labels: { team: key-management }
+  application:
+    name: checker-emea
+    environment: staging
+    labels: { team: key-management }
+
+  server:
+    address: :8080
+    shutdownTimeout: 5s
+
+  healthcheck:
+    enabled: true
+    endpoint: /healthz
+    refreshDuration: 5s
+    name: healthcheck
+    maskURLs: true
+    cluster:
+      enabled: true
+      tag: services
+      resources:
+        - name: cmk
+          url: http://cmk.services.svc.cluster.local:8888/probe/readiness
+          retry: { maxRetries: 2 }
+          checks:
+            - { type: Equal, source: ResponseStatus, value: "200 OK" }
+            - { type: Contains, source: ResponseBody, value: "ok" }
+            - { type: RegularExpression, source: ResponseBody, value: '"status":\s*"(UP|OK)"' }
+            - { type: Prefix, source: ResponseStatus, value: "2" }
+            - { type: Suffix, source: ResponseBody, value: "passed" }
+    kubernetes:
+      enabled: true
+      tag: kubernetes
+      resources:
+        - name: etcd
+          url: /readyz/etcd
+          checks:
+            - { type: Equal, source: ResponseBody, value: "ok" }
+    linkerd:
+      enabled: true
+      tag: linkerd
+      controlPlaneNamespace: linkerd
+      dataPlaneNamespace: ""
+      cniNamespace: linkerd-cni
+      cniEnabled: true
+      retryDeadline: 300
+      checks:
+        - kubernetes-api
+        - kubernetes-version
+        - linkerd-version
+        - linkerd-existence
+        - linkerd-config
+        - linkerd-identity
+        - linkerd-webhooks-and-apisvc-tls
+        - control-plane-version
+        - linkerd-control-plane-proxy
+        - linkerd-ha-checks
+        - linkerd-data-plane
+        - linkerd-identity-data-plane
+        - linkerd-cni-plugin
+        - linkerd-extension-checks
+      output: short
+      retry: { maxRetries: 2 }
+
+  healthchecks:
+    - enabled: true
+      endpoint: /healthz/kubernetes
+      refreshDuration: 10s
+      kubernetes:
+        enabled: true
+        resources:
+          - name: readiness
+            url: /readyz
+            checks:
+              - { type: Equal, source: ResponseStatus, value: "200 OK" }
+
+  versions:
+    enabled: true
+    endpoint: /versions
+    timeout: 5s
+    resources:
+      - name: cmk
+        url: http://cmk.services.svc.cluster.local:8888/version
+      - name: registry
+        url: http://registry.services.svc.cluster.local:8888/version
+
+  status:
+    enabled: true
+    address: :8888
+    profiling: false
+
+  logger:
+    level: debug
+    format: text
+    source: true
+    formatter:
+      time:
+        type: unix
+        precision: 1ms
+        pattern: "Mon Jan 02 15:04:05 -0700 2006"
+      fields:
+        time: ts
+        error: err
+        level: level
+        message: message
+        otel: { traceId: trace_id, spanId: span_id }
+        masking:
+          pii: [email, ip-address]
+          other: { jwt-token: "*****" }
+
+  # Example: traces over gRPC with mTLS, metrics and logs over HTTP.
+  telemetry:
+    traces:
+      enabled: true
+      protocol: grpc
+      host: { source: embedded, value: otel-collector.observability:4317 }
+      secretRef:
+        type: mtls
+        mtls:
+          cert: { source: file, file: { path: /etc/otel/tls.crt, format: binary } }
+          certKey: { source: file, file: { path: /etc/otel/tls.key, format: binary } }
+          serverCa: { source: file, file: { path: /etc/otel/ca.crt, format: binary } }
+    metrics:
+      enabled: true
+      protocol: http
+      host: { source: env, env: OTEL_HOST }
+      url: /v1/metrics
+      secretRef:
+        type: api-token
+        apiToken: { source: file, file: { path: /etc/otel/api-token, format: binary } }
+    logs:
+      enabled: true
+      protocol: http
+      host: { source: env, env: OTEL_HOST }
+      url: /v1/logs
+      secretRef: { type: insecure }

@@ -21,6 +21,19 @@ type CachedResponses struct {
 type ResultCollector struct {
 	Status utils.Container[int]
 	Data   sync.Map
+
+	// mu serialises appendResponse: the resources of a group are checked concurrently.
+	mu sync.Mutex
+}
+
+// appendResponse adds resp to the responses stored under tag.
+func (rc *ResultCollector) appendResponse(tag string, resp *Response) {
+	rc.mu.Lock()
+	defer rc.mu.Unlock()
+
+	value, _ := rc.Data.Load(tag)
+	l, _ := value.([]*Response)
+	rc.Data.Store(tag, append(l, resp))
 }
 
 func NewCachedResponses(ctx context.Context, cfg *config.Healthcheck) *CachedResponses {

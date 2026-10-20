@@ -37,6 +37,12 @@ clean:
 	rm -f cover.out cover.html $(NAME)
 	rm -rf cover/
 
+# Helm chart unit tests: render charts/checker with `helm template` and load the
+# configuration with the Checker's own code. Needs the helm command, no cluster.
+.PHONY: helm-test
+helm-test:
+	go test -count=1 -tags=helmtest ./helmtest/unit/...
+
 .PHONY: test
 test: clean
 	mkdir -p cover/integration cover/unit
