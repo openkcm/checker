@@ -2,43 +2,15 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "checker.name" . }}-config
+  name: {{ include "checker.configMapName" . }}
   namespace: {{ include "checker.namespace" . }}
   labels:
     {{- include "checker.labels" . | nindent 4 }}
-immutable: {{ .Values.config.isImmutable | default false }}
+  {{- with .Values.configMap.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+immutable: {{ include "checker.configImmutable" . | eq "true" }}
 data:
   config.yaml: |-
-    application:
-      name: {{ .Chart.Name }}
-    {{- with .Values.config }}
-      environment: {{ .environment }}
-      {{- with .labels }}
-      labels:
-        {{- toYaml . | nindent 8 }}
-      {{- end}}
-
-    server:
-      {{- toYaml .server | nindent 6 }}
-
-    logger:
-      {{- toYaml .logger | nindent 6 }}
-
-    status:
-      {{- toYaml .status | nindent 6 }}
-
-    telemetry:
-      {{- toYaml .telemetry | nindent 6 }}
-
-    healthcheck:
-      {{- toYaml .healthcheck | nindent 6 }}
-
-    healthchecks:
-      {{- toYaml .healthchecks | nindent 6 }}
-
-    versions:
-      {{- toYaml .versions | nindent 6 }}
-
-    {{- end }}
-
-
+    {{- include "checker.config" . | nindent 4 }}

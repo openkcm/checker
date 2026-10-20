@@ -1,247 +1,548 @@
-# Default values for checker.
-# This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
+# Default values for the OpenKCM Checker chart.
+#
+# The Checker reports the health of a cluster and the versions of its services over HTTP. Its
+# health check endpoints (port 8080) check services over HTTP (`cluster`), the Kubernetes API
+# server (`kubernetes`) and the Linkerd service mesh (`linkerd`) every few seconds, and answer
+# with the result of the last run. Its versions endpoint collects the build versions of other
+# services. A status server (port 8888) serves the probes, the Checker's own version and its
+# metrics.
+#
+# Layout of this file:
+#   1. Names and labels
+#   2. Workload: replicas, image, pod and container settings, probes, resources
+#   3. Kubernetes API access: service account and RBAC
+#   4. Networking: service, ports, network policy
+#   5. Extension points: extra containers, volumes and environment variables
+#   6. config: the Checker's own configuration, rendered into /etc/checker/config.yaml
+#
+# Overview, upgrade notes and troubleshooting: README.md of this chart.
+#
+# Comments starting with "# --" document a value (helm-docs format).
 
+###############################################################################
+# 1. Names and labels
+###############################################################################
 
-# Override the "name" value, which is used to annotate some of
-# the resources that are created by this Chart (using "app.kubernetes.io/name").
-# +docs:property
+# -- Override the chart name. Used in resource names and in the
+# `app.kubernetes.io/name` label.
 nameOverride: ""
 
-# Override the "fullname" value. This value is used as part of
-# most of the names of the resources created by this Helm chart.
-# +docs:property
+# -- Override the full name of all resources. Default: `<release name>-checker`,
+# or the release name if it already contains `checker`.
 fullnameOverride: ""
 
-# This namespace allows you to define where the services are installed into.
-# If not set then they use the namespace of the release.
-# This is helpful when installing a chart dependency (sub chart).
+# -- Namespace for all resources. Empty: the namespace of the Helm release.
+# Useful when the chart is installed as a dependency of another chart.
 namespace: ""
 
-# This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
+# -- Labels added to every resource of the chart, for example a team or cost center.
+commonLabels: {}
+
+###############################################################################
+# 2. Workload
+###############################################################################
+
+# -- Number of Checker pods. Ignored when `hpa.enabled` is true. Every pod runs all
+# checks on its own; more pods give availability, not capacity.
 replicaCount: 1
 
-# This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
+# -- Number of old ReplicaSets kept for `kubectl rollout undo`.
+revisionHistoryLimit: 10
+
+# -- Deployment update strategy. Empty uses the Kubernetes default
+# (RollingUpdate with 25% maxSurge and 25% maxUnavailable).
+# Example:
+#   strategy:
+#     type: RollingUpdate
+#     rollingUpdate: { maxSurge: 1, maxUnavailable: 0 }
+strategy: {}
+
 image:
-  # The container registry to pull the image from.
-  # For example:
-  #   registry: kms.common.repositories.cloud.sap
-  #   repository: cmk
-  # +docs:property
-  registry: docker.io/nicolaenicora
+  # -- Container registry of the image. Set to "" when `repository` contains the
+  # full image name.
+  registry: ghcr.io/openkcm
 
-  # The container image
-  # +docs:property
-  repository: checker
+  # -- Image repository within `image.registry`. Release images are published as
+  # `ghcr.io/openkcm/checker/images/checker`.
+  repository: checker/images/checker
 
-  # Override the image tag to deploy by setting this variable.
-  # If no value is set, the chart's appVersion is used.
-  # +docs:property
-  # tag: 1.0.0
+  # -- Image tag, for example `v0.3.2`. Empty: the chart's appVersion, the Checker
+  # release this chart deploys by default.
+  tag: ""
 
-  # Setting a digest will override any tag.
-  # +docs:property
-  # digest: sha256:fcde067efa182a503a6e9d7f3a6565bacf7cb884dce552c0c41feb319946bc33
+  # -- Image digest, for example `sha256:0e07…`. Takes precedence over `image.tag`.
+  # Use a digest for reproducible deployments.
+  digest: ""
 
-  # Kubernetes imagePullPolicy.
+  # -- Kubernetes image pull policy: `IfNotPresent`, `Always` or `Never`.
   pullPolicy: IfNotPresent
 
-  # Setting the arguments for the container
-  # +docs:property
+  # -- Override the container command, as a list or a single string. Empty uses
+  # the image's command (`/checker`).
+  command: []
+
+  # -- Arguments passed to the Checker. Its command-line flags:
+  #   --graceful-shutdown=<seconds>       seconds the process waits before it exits, after
+  #                                       the HTTP server has stopped. Default: 1
+  #   --graceful-shutdown-message=<text>  printed to standard error at shutdown; `%d` is
+  #                                       replaced by the seconds. Default:
+  #                                       `Graceful shutdown in %d seconds`
+  #   --version                           print the version and exit
+  # Everything else is configured through `config`. At shutdown the Checker first lets
+  # running requests finish (`config.server.shutdownTimeout`), then waits the graceful
+  # shutdown seconds; keep the sum below `pod.terminationGracePeriodSeconds` (30 by default).
   args:
     - --graceful-shutdown=5
-    - --graceful-shutdown-message="Graceful shutdown in %d seconds"
 
-  command: "./checker"
-
-
-# This is for the secretes for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+# -- Secrets with credentials for pulling the image from a private registry.
+# Example: `[{ name: registry-access }]`
 imagePullSecrets: []
-#  - name: "registry-access"
 
-
-# This section builds out the service account more information can be found here: https://kubernetes.io/docs/concepts/security/service-accounts/
-serviceAccount:
-  # Specifies whether a service account should be created
-  create: true
-  # Automatically mount a ServiceAccount's API credentials?
-  automount: true
-  # Annotations to add to the service account
+pod:
+  # -- Annotations for the pods, for example for a service mesh
+  # (`linkerd.io/inject: enabled`). The chart always adds `checksum/config`, which
+  # restarts the pods when the configuration changes.
   annotations: {}
-  # The name of the service account to use.
-  # If not set and create is true, a name is generated using the fullname template
-  name: ""
 
-# This is for setting Kubernetes Annotations to a Pod.
-# For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
-podAnnotations: {}
-# This is for setting Kubernetes Labels to a Pod.
-# For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
-podLabels: {}
-
-podSecurityContext: {}
-  # fsGroup: 2000
-
-securityContext: {}
-  # capabilities:
-  #   drop:
-  #   - ALL
-  # readOnlyRootFilesystem: true
-  # runAsNonRoot: true
-  # runAsUser: 1000
-
-podDisruptionBudget:
-  # Enable or disable the PodDisruptionBudget resource.
-  #
-  # This prevents downtime during voluntary disruptions such as during a Node upgrade.
-  # For example, the PodDisruptionBudget will block `kubectl drain`
-  # Pod is currently running.
-  enabled: false
-
-  # This configures the minimum available pods for disruptions. It can either be set to
-  # an integer (e.g. 1) or a percentage value (e.g. 25%).
-  # It cannot be used if `maxUnavailable` is set.
-  # +docs:property
-  # +docs:type=unknown
-  # minAvailable: 1
-
-  # This configures the maximum unavailable pods for disruptions. It can either be set to
-  # an integer (e.g. 1) or a percentage value (e.g. 25%).
-  # it cannot be used if `minAvailable` is set.
-  # +docs:property
-  # +docs:type=unknown
-  # maxUnavailable: 1
-
-# This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
-service:
-  # Labels to add to the service
+  # -- Additional labels for the pods.
   labels: {}
-  # Annotations to add to the service
-  annotations: {}
-  # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
-  type: ClusterIP
-  # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
-  ports:
-    - port: 8080
-      protocol: TCP
-      targetPort: http
-      name: http
 
+  # -- Pod security context. The defaults run the Checker as user and group 65532
+  # (`nonroot` of the distroless release image), give that group access to the
+  # mounted volumes (`fsGroup`) and use the runtime's default seccomp profile.
+  # `runAsUser` is needed with `runAsNonRoot`: the kubelet refuses to start an image
+  # whose user is a name, such as `USER nonroot`, because it cannot check that the
+  # user is not root.
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 65532
+    runAsGroup: 65532
+    fsGroup: 65532
+    seccompProfile:
+      type: RuntimeDefault
 
-resources: {}
-  # We usually recommend not to specify default resources and to leave this as a conscious
-  # choice for the user. This also increases chances charts run on environments with little
-  # resources, such as Minikube. If you do want to specify resources, uncomment the following
-  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-  # limits:
-  #   cpu: 100m
-  #   memory: 128Mi
-  # requests:
-  #   cpu: 100m
-  #   memory: 128Mi
+  # -- Inject environment variables for the Services of the namespace
+  # (`<SERVICE>_PORT`, …). The Checker does not use them. The variables
+  # `KUBERNETES_SERVICE_HOST` and `KUBERNETES_SERVICE_PORT`, which the kubernetes and
+  # linkerd checks need, are set either way.
+  enableServiceLinks: false
 
-# This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+  # -- PriorityClass of the pods. Empty: the cluster default.
+  priorityClassName: ""
+
+  # -- Seconds the pod has to shut down after SIGTERM. Null: the Kubernetes
+  # default (30). See `image.args` for the Checker's shutdown.
+  terminationGracePeriodSeconds: null
+
+  disruptionBudget:
+    # -- Create a PodDisruptionBudget, which limits how many pods voluntary
+    # disruptions such as node drains may take down at once.
+    enabled: false
+    # -- Minimum number (for example `1`) or percentage (for example `50%`) of pods
+    # that must stay available. Do not set together with `maxUnavailable`. With a
+    # single replica, `minAvailable: 1` blocks node drains.
+    # minAvailable: 1
+    # -- Maximum number or percentage of pods that may be unavailable. Default
+    # when neither value is set: `1`.
+    # maxUnavailable: 1
+
+  # -- Node labels the pods must be scheduled on.
+  nodeSelector: {}
+
+  # -- Affinity rules, for example to spread pods across nodes.
+  affinity: {}
+
+  # -- Topology spread constraints, for example across zones:
+  #   - maxSkew: 1
+  #     topologyKey: topology.kubernetes.io/zone
+  #     whenUnsatisfiable: ScheduleAnyway
+  #     labelSelector:
+  #       matchLabels: { app.kubernetes.io/name: checker }
+  topologySpreadConstraints: []
+
+  # -- Tolerations for node taints.
+  tolerations: []
+
+# -- Container security context. The defaults forbid privilege escalation, drop
+# all Linux capabilities and make the root filesystem read-only; `/tmp` is a
+# writable emptyDir (see `tmpVolume`).
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+
+tmpVolume:
+  # -- Mount a writable emptyDir at `/tmp`. Needed with a read-only root filesystem.
+  enabled: true
+  # -- Size limit of the `/tmp` volume.
+  sizeLimit: 64Mi
+
+# -- CPU, memory and ephemeral storage of the Checker container. Requests are needed
+# for the autoscaler (`hpa`). No CPU limit is set by default, so the checks are not
+# throttled. The ephemeral-storage limit covers the container's logs and the `/tmp` volume
+# (`tmpVolume.sizeLimit`); a pod that exceeds it is evicted.
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+    ephemeral-storage: 64Mi
+  limits:
+    memory: 256Mi
+    ephemeral-storage: 256Mi
+
+# -- Startup probe: gives the Checker time to start its status server (here up to
+# 60 seconds) before the liveness probe applies. Requires `config.status.enabled: true`.
+startupProbe:
+  httpGet:
+    path: /probe/liveness
+    port: http-status
+  periodSeconds: 2
+  failureThreshold: 30
+
+# -- Liveness probe: restarts the container when the process no longer responds.
 livenessProbe:
   httpGet:
     path: /probe/liveness
     port: http-status
-    scheme: HTTP
-  failureThreshold: 1
   periodSeconds: 10
+  timeoutSeconds: 2
+  failureThreshold: 3
+
+# -- Readiness probe. `/probe/readiness` answers as soon as the status server runs. It
+# does not depend on the result of the health checks, so a failing check does not take
+# the Checker out of its Service.
 readinessProbe:
   httpGet:
     path: /probe/readiness
     port: http-status
-    scheme: HTTP
-  failureThreshold: 1
   periodSeconds: 10
+  timeoutSeconds: 2
+  failureThreshold: 3
 
-# This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
-autoscaling:
+hpa:
+  # -- Create a HorizontalPodAutoscaler. Replaces `replicaCount`. Needs
+  # `resources.requests` for the metrics used.
   enabled: false
+  # -- Minimum number of pods.
   minReplicas: 1
-  maxReplicas: 1
+  # -- Maximum number of pods.
+  maxReplicas: 3
+  # -- Target average CPU utilization in percent of the request. Null disables the
+  # CPU metric.
   targetCPUUtilizationPercentage: 80
+  # -- Target average memory utilization in percent of the request. Null disables
+  # the memory metric.
   targetMemoryUtilizationPercentage: 80
+  # -- Scaling behavior (stabilization windows and policies) of the autoscaler.
+  behavior: {}
 
-# This is for setting up pod topology spread constraints by hostname more information can be found here:
-# https://kubernetes.io/docs/concepts/workloads/pods/pod-topology-spread-constraints/
-topologySpreadConstraints: []
+###############################################################################
+# 3. Kubernetes API access
+###############################################################################
 
-# Additional init containers on the output Deployment definition.
-extraInitContainers: []
+serviceAccount:
+  # -- Create a ServiceAccount for the Checker. If false, `serviceAccount.name`
+  # (or `default`) must exist.
+  create: true
+  # -- Mount the ServiceAccount token into the pods. **Required** for the kubernetes
+  # and linkerd checks (`config.healthcheck.kubernetes`, `config.healthcheck.linkerd`),
+  # which call the Kubernetes API with it. Set it to false only if neither is enabled.
+  automount: true
+  # -- Annotations for the ServiceAccount.
+  annotations: {}
+  # -- Name of the ServiceAccount. Empty with `create: true`: the chart's full name.
+  name: ""
 
-# Additional containers on the output Deployment definition.
-extraContainers: []
+rbac:
+  # -- Create the ClusterRole and ClusterRoleBinding that let the ServiceAccount read
+  # what the Linkerd checks need (templates/rbac.yaml): nodes, pods, services, endpoints,
+  # namespaces, service accounts, replica sets, cluster roles and bindings, and webhook
+  # configurations; Linkerd's configuration ConfigMaps, certificate Secrets and workloads
+  # only by name. Read-only: list, watch and get. The kubernetes checks need no role: the
+  # default role `system:public-info-viewer` lets every client read `/livez`, `/readyz`
+  # and `/healthz` of the API server. Set it to false if the linkerd checks are disabled,
+  # or to grant the permissions yourself.
+  create: true
+  # -- Additional rules for the ClusterRole, in ClusterRole rule syntax, for example for
+  # the `gateway-api-crd` category of Linkerd:
+  #   - apiGroups: [apiextensions.k8s.io]
+  #     resources: [customresourcedefinitions]
+  #     resourceNames:
+  #       - httproutes.gateway.networking.k8s.io
+  #       - grpcroutes.gateway.networking.k8s.io
+  #     verbs: [get]
+  extraRules: []
 
-# Additional volumes on the output Deployment definition.
-extraVolumes: []
-# - name: foo
-#   secret:
-#     secretName: mysecret
-#     optional: false
+###############################################################################
+# 4. Networking
+###############################################################################
 
-# Additional volumeMounts on the output Deployment definition.
-extraVolumeMounts: []
-# - name: foo
-#   mountPath: "/etc/foo"
-#   readOnly: true
+service:
+  # -- Additional labels for the Service.
+  labels: {}
+  # -- Annotations for the Service.
+  annotations: {}
+  # -- Service type. To reach the health check endpoints from outside the cluster,
+  # prefer an Ingress or Gateway route to the `http` port over a LoadBalancer.
+  type: ClusterIP
+  # -- Ports of the Service. The first port serves the health check and versions
+  # endpoints and is shown in the release notes. The status port serves `/version` and,
+  # if enabled, `/metrics`.
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8080
+      targetPort: http
+    - name: http-status
+      protocol: TCP
+      port: 8888
+      targetPort: http-status
 
-# Additional ens on the output Deployment definition.
-extraEnvs: []
-# Additional envsFrom on the output Deployment definition.
-extraEnvsFrom: []
-
-nodeSelector: {}
-
-tolerations: []
-
+# -- Ports of the Checker container. They must match `config.server.address` and
+# `config.status.address`. The probes and the network policy refer to them by name.
 ports:
-  - name: http-status
-    containerPort: 8888
-    protocol: TCP
   - name: http
     containerPort: 8080
     protocol: TCP
+  - name: http-status
+    containerPort: 8888
+    protocol: TCP
 
-affinity: {}
+networkPolicy:
+  # -- Create a NetworkPolicy for the Checker pods. When enabled, only the peers listed
+  # below can reach the pods; everything else is denied. Outgoing traffic (the checked
+  # services, the Kubernetes API, the collector) is not restricted.
+  enabled: false
+  http:
+    # -- Peers allowed to call the health check and versions endpoints (port `http`), for
+    # example your ingress gateway and monitoring. NetworkPolicy peer syntax, for example:
+    #   - namespaceSelector:
+    #       matchLabels: { kubernetes.io/metadata.name: envoy-gateway-system }
+    # Empty: no peer can reach these endpoints.
+    from: []
+  status:
+    # -- Peers allowed to reach the status port (`http-status`), for example your
+    # metrics collector or the versions endpoint of another Checker. Kubelet probes are
+    # usually not affected.
+    from: []
+  # -- Additional ingress rules, in NetworkPolicy syntax.
+  extraIngress: []
 
+###############################################################################
+# 5. Extension points
+###############################################################################
 
+# -- Init containers added to the pod.
+extraInitContainers: []
+
+# -- Containers added to the pod, after the Checker container.
+extraContainers: []
+
+# -- Volumes added to the pod. Besides its configuration, the Checker reads only the
+# files that `config.telemetry` names: client certificates, keys and CA certificates
+# for mTLS, or a file with a token or password. They are PEM files:
+#   tls.crt   the certificate, then the intermediate CAs that issued it, if any:
+#               -----BEGIN CERTIFICATE-----
+#               MIIB…                                (client certificate of the Checker)
+#               -----END CERTIFICATE-----
+#               -----BEGIN CERTIFICATE-----
+#               MIIB…                                (intermediate CA)
+#               -----END CERTIFICATE-----
+#   tls.key   the private key of that certificate, unencrypted, in one block:
+#               -----BEGIN PRIVATE KEY-----          (PKCS #8: RSA, ECDSA or Ed25519 key)
+#               MIIE…
+#               -----END PRIVATE KEY-----
+#             `BEGIN RSA PRIVATE KEY` (PKCS #1) and `BEGIN EC PRIVATE KEY` (SEC 1) work too
+#   ca.crt    one or more CA certificates, each a CERTIFICATE block as above
+# A Secret of type kubernetes.io/tls with an added ca.crt has the same keys. Create tokens
+# and passwords with `--from-literal`, which adds no trailing newline:
+#   kubectl -n services create secret generic checker-otel \
+#     --from-file=tls.crt=otel-client.crt --from-file=tls.key=otel-client.key \
+#     --from-file=ca.crt=otel-ca.crt --from-literal=api-token='<token>'
+# The pods run with group 65532 (`pod.securityContext.fsGroup`), so the files are readable
+# with mode 0440. Example of the volume:
+#   - name: otel-credentials
+#     secret: { secretName: checker-otel, defaultMode: 0440 }
+extraVolumes: []
+
+# -- Volume mounts added to the Checker container. Mount Secrets read-only. Do not mount
+# anything at `/etc/checker/config.yaml`, the configuration file, or over `/etc/checker`.
+# Example of the mount for the volume above:
+#   - name: otel-credentials
+#     mountPath: /etc/otel
+#     readOnly: true
+extraVolumeMounts: []
+
+# -- Environment variables added to the Checker container, for example for value
+# references with `source: env` in `config.telemetry`:
+#   - name: OTEL_HOST
+#     value: otel-collector.observability:4318
+# The Checker does not read other configuration from environment variables. With
+# `KUBECONFIG` set to a kubeconfig file, the kubernetes and linkerd checks use that file
+# instead of the ServiceAccount.
+extraEnvs: []
+
+# -- Sources of environment variables (ConfigMaps or Secrets) for the container.
+extraEnvsFrom: []
+
+configMap:
+  # -- Make the configuration ConfigMap immutable. The chart then adds a hash of
+  # the configuration to its name, so a changed configuration creates a new
+  # ConfigMap during the upgrade and Helm deletes the previous one. Roll back with
+  # `helm rollback`, not `kubectl rollout undo`: the previous pods would mount the
+  # deleted ConfigMap and not start. (`config.isImmutable` from older values files is
+  # still honoured.)
+  immutable: false
+  # -- Annotations for the configuration ConfigMap.
+  annotations: {}
+
+###############################################################################
+# 6. Checker configuration
+#
+# Everything under `config` is written to /etc/checker/config.yaml (helper checker.config
+# in templates/_helpers.tpl). The Checker reads it at startup and rejects unknown keys
+# ("has invalid keys"), so only use the keys below. Key names are case-insensitive.
+# "Default:" names the Checker's value for a key that is not set in config.yaml.
+#
+# Value references. Settings marked "value reference" take one of these forms:
+#   { source: embedded, value: "…" }      # the value itself. Stored in plain text in the
+#                                         # ConfigMap: do not use it for secrets
+#   { source: env, env: VARIABLE_NAME }   # an environment variable of the container
+#                                         # (extraEnvs, extraEnvsFrom)
+#   { source: file, file: { path: /etc/otel/api-token, format: binary } }
+#                                         # the whole file as it is: a trailing newline is part
+#                                         # of the value. Mount Secrets with extraVolumes and
+#                                         # extraVolumeMounts. format: yaml reads the whole file
+#                                         # too
+#   { source: file, file: { path: /etc/otel/otel.json, format: json, jsonPath: "$.token" } }
+#                                         # one string field of a JSON file
+# `source` defaults to `embedded`. Only `config.telemetry` uses value references.
+#
+# Durations are Go duration strings: `500ms`, `10s`, `5m`, `1h30m`.
+###############################################################################
 config:
-  isImmutable: false
+  # ---------------------------------------------------------------------------
+  # application: environment and labels of the Checker in its logs, traces and metrics.
+  # ---------------------------------------------------------------------------
 
-  # Environment where the application is running
+  # Names this Checker installation in everything it emits, so that its logs, traces and
+  # metrics can be told apart from those of other installations in a shared backend.
+
+  # -- Name of the installation, for example `production` or `staging`
+  # (`application.environment`). Attached to logs, traces and metrics.
   environment: production
-  # Labels associated to metrics, traces and logs
+
+  # -- Additional attributes of the installation (`application.labels`), a map of strings.
+  # Attached to logs, traces and metrics. Example: `{ team: key-management }`
   labels: {}
 
+  # The chart writes `environment` and `labels`, together with `name` (the chart name, or
+  # `nameOverride`), to the `application` block of config.yaml. To set that block directly,
+  # use `application`; its keys take precedence. `name` is the service name in logs, traces
+  # and metrics, and the key of the Checker's own version in the answer of the versions
+  # endpoint. Example:
+  #   application:
+  #     name: checker-emea
+  #     environment: staging
+  #     labels: { team: key-management }
+
+  # ---------------------------------------------------------------------------
+  # server: HTTP server of the health check and versions endpoints.
+  # ---------------------------------------------------------------------------
+
+  # Serves the endpoints of `healthcheck`, `healthchecks` and `versions`, without TLS and
+  # without authentication. Put a service mesh, a NetworkPolicy or a gateway in front of it
+  # to control who may call it.
+
   server:
-    address: ":8080"
+    # -- Listen address, `:port` or `host:port`. Must match the `http` container port.
+    # Default: `:8080`.
+    address: :8080
+    # -- Time that running requests get to finish when the Checker stops. Default: 5s.
     shutdownTimeout: 5s
 
-  # Expose the status port
-  status:
-    enabled: true
-    address: ":8888"
-    profiling: false
+  # ---------------------------------------------------------------------------
+  # healthcheck: the main health check endpoint.
+  # ---------------------------------------------------------------------------
 
-  # This does set the logger configuration
-  # +docs:property
-  logger:
-    level: info # one of: debug, info, warn, error
-    # Format of the logs
-    format: json # one of: json, text
-
-  versions:
-    enabled: false
-    endpoint: /versions
-    resources:
-      - name: cmk
-        url: http://cmk.services.svc.cluster.local:8888/version
-
+  # Checks the services of the cluster over HTTP (`cluster`), the Kubernetes API server
+  # (`kubernetes`) and the Linkerd service mesh (`linkerd`). The checks run in the
+  # background every `refreshDuration`; the endpoint answers immediately with the result of
+  # the last run:
+  #   HTTP 200   every enabled check passed, or failed no more often in a row than its
+  #              `retry.maxRetries`
+  #   HTTP 503   a check failed, or the first run has not finished yet
+  # The body is a JSON object with one entry per check group, named by its `tag`:
+  #   {
+  #     "cluster": [
+  #       { "name": "envoy-gateway", "url": "http://…/healthz", "status": "OK" }
+  #     ],
+  #     "kubernetes": [
+  #       { "name": "readiness", "url": "/readyz?verbose", "status": "NOT OK",
+  #         "errors": [ { "error": "Check Contains", "message": "…" } ] }
+  #     ],
+  #     "linkerd": { "status": "OK" }
+  #   }
+  # `status` is `OK`, `NOT OK`, or `OK [FAILURE TOLERATED ON RETRY]` for a failure that
+  # `retry.maxRetries` still tolerates. A group that is disabled, or has no resources, is
+  # missing from the answer.
+  #
+  # Checks of a resource (`checks`, used by `cluster` and `kubernetes`). Every check of a
+  # resource must pass; a resource without checks passes with any answer, so add at least
+  # one `ResponseStatus` check:
+  #   type     how `value` is compared: `Contains`, `Prefix`, `Suffix`, `Equal` (the whole
+  #            source) or `RegularExpression` (Go RE2 syntax, matches anywhere unless
+  #            anchored with ^ and $). Default: `Contains`. Other values make the check fail
+  #   source   what is compared: `ResponseBody` (the body of the answer) or
+  #            `ResponseStatus` (status code and reason, for example `200 OK`).
+  #            Default: `ResponseBody`
+  #   value    the expected text or regular expression
+  # Example checks:
+  #   checks:
+  #     - { type: Equal, source: ResponseStatus, value: "200 OK" }
+  #     - { type: Contains, source: ResponseBody, value: "ok" }
+  #     - { type: RegularExpression, source: ResponseBody, value: '"status":\s*"(UP|OK)"' }
+  #     - { type: Prefix, source: ResponseStatus, value: "2" }
+  #     - { type: Suffix, source: ResponseBody, value: "passed" }
+  # A resource also has:
+  #   name               its name in the answer
+  #   url                what to call; see `cluster` and `kubernetes`
+  #   retry.maxRetries   failed runs in a row that are still reported as healthy, marked
+  #                      `OK [FAILURE TOLERATED ON RETRY]`. Default: 0
   healthcheck:
-    endpoint: "/healthz"
+    # -- Serve this endpoint. Default: false.
     enabled: true
+    # -- Path of the endpoint on the `http` port. Each endpoint of `healthcheck`,
+    # `healthchecks` and `versions` needs its own path: the Checker does not start with two
+    # equal paths. Default: `/healthz`.
+    endpoint: /healthz
+    # -- Interval of the check runs, greater than 0. A run that takes longer delays the
+    # next one. Default: 5s.
+    # refreshDuration: 5s
+    # -- Name of the endpoint in logs, traces and metrics (attribute `operation`). The
+    # endpoints of `healthchecks` use `<name>-<index>`. Default: `healthcheck`.
+    # name: healthcheck
+    # -- Replace the `url` of every resource and every error message with `****` in the
+    # answers of all health check endpoints, for example when they are reachable from
+    # outside the cluster. The Checker's logs still contain them. Default: false.
+    # maskURLs: false
+
+    # -- Services checked over HTTP: an HTTP GET to each `url`, an absolute `http://` or
+    # `https://` URL, with a timeout of 5 seconds. `https://` URLs must have a certificate
+    # from a CA in the container image. Default `tag`: `cluster`. The default resources
+    # are the health endpoints of OpenKCM's Envoy Gateway; replace them with your services.
+    # Example:
+    #   cluster:
+    #     enabled: true
+    #     tag: services
+    #     resources:
+    #       - name: cmk
+    #         url: http://cmk.services.svc.cluster.local:8888/probe/readiness
+    #         retry: { maxRetries: 2 }
+    #         checks:
+    #           - { type: Equal, source: ResponseStatus, value: "200 OK" }
     cluster:
       enabled: false
       tag: cluster
@@ -249,21 +550,32 @@ config:
         - name: envoyproxy-ingress-gateway
           url: http://envoyproxy-ingress-gateway.envoy-gateway-system.svc:8888/ready
           checks:
-            - type: Equal #oneof: Contains, RegularExpression, Prefix, Suffix, Equal
-              source: ResponseStatus #oneof: ResponseBody, ResponseStatus
+            - type: Equal
+              source: ResponseStatus
               value: "200 OK"
         - name: envoyproxy-ingress-certificate-gateway
           url: http://envoyproxy-ingress-certificate-gateway.envoy-gateway-system.svc:8888/ready
           checks:
-            - type: Equal #oneof: Contains, RegularExpression, Prefix, Suffix, Equal
-              source: ResponseStatus #oneof: ResponseBody, ResponseStatus
+            - type: Equal
+              source: ResponseStatus
               value: "200 OK"
         - name: envoy-gateway
           url: http://envoy-gateway.envoy-gateway-system.svc:8888/healthz
           checks:
-            - type: Equal #oneof: Contains, RegularExpression, Prefix, Suffix, Equal
-              source: ResponseStatus #oneof: ResponseBody, ResponseStatus
+            - type: Equal
+              source: ResponseStatus
               value: "200 OK"
+
+    # -- Health endpoints of the Kubernetes API server: an HTTP GET to the API server
+    # address followed by `url`, a path such as `/livez?verbose`, `/readyz?verbose` or
+    # `/healthz`, with the ServiceAccount token (`serviceAccount.automount`) and a timeout
+    # of 5 seconds. `?verbose` lists the individual checks of the API server, for example
+    # `[+]etcd ok`, and ends with `livez check passed` or `readyz check passed`. Default
+    # `tag`: `kubernetes`. Example of one more check:
+    #   - name: etcd
+    #     url: /readyz/etcd
+    #     checks:
+    #       - { type: Equal, source: ResponseBody, value: "ok" }
     kubernetes:
       enabled: true
       tag: kubernetes
@@ -271,36 +583,345 @@ config:
         - name: liveness
           url: /livez?verbose
           checks:
-            - type: Contains #oneof: Contains, RegularExpression, Prefix, Suffix, Equal
-              source: ResponseBody #oneof: ResponseBody, ResponseStatus
+            - type: Contains
+              source: ResponseBody
               value: "livez check passed"
         - name: readiness
           url: /readyz?verbose
           checks:
-            - type: Contains #oneof: Contains, RegularExpression, Prefix, Suffix, Equal
-              source: ResponseBody #oneof: ResponseBody, ResponseStatus
+            - type: Contains
+              source: ResponseBody
               value: "readyz check passed"
+
+    # -- Linkerd service mesh: runs the categories of `linkerd check` listed in `checks`
+    # against the Kubernetes API, with the ServiceAccount token and the permissions of
+    # `rbac`. The answer has one entry, `status` and `errors`, under `tag`. Warnings of
+    # Linkerd, such as a newer Linkerd version, are logged, not reported as failures. A
+    # failed check that Linkerd marks as fatal skips the categories after it. Requires
+    # Linkerd in the cluster; disable it otherwise.
     linkerd:
       enabled: true
+      # -- Key of the result in the answer. Default: `linkerd`.
       tag: linkerd
+      # -- Namespace of the Linkerd control plane. Default: `linkerd`.
       controlPlaneNamespace: linkerd
+      # -- Namespace whose meshed pods `linkerd-data-plane` and `linkerd-identity-data-plane`
+      # check; "" checks all namespaces. Default: `linkerd`.
       dataPlaneNamespace: linkerd
+      # -- Namespace of the Linkerd CNI plugin, for `linkerd-cni-plugin`.
+      # Default: `linkerd-cni`.
       cniNamespace: linkerd-cni
-      retryDeadline: 300
+      # -- Linkerd runs with the CNI plugin; `linkerd-cni-plugin` is skipped otherwise. With
+      # `linkerd-existence` or `linkerd-config` in `checks`, the value from Linkerd's own
+      # configuration applies instead. Default: false.
       cniEnabled: false
-      output: short #One of: table, json, short
+      # -- Seconds that checks which wait for a condition, such as ready control plane pods,
+      # keep retrying (every 5 seconds) within one run. A run, and with it the next result,
+      # can take that long. Default: 300.
+      retryDeadline: 300
+      # -- Categories of `linkerd check` to run. They run in Linkerd's order, not in the
+      # order of this list; unknown names are ignored. Categories and what they need:
+      #   kubernetes-api                    connection to the Kubernetes API
+      #   kubernetes-version                Kubernetes 1.31 or later. Needs kubernetes-api
+      #                                     in the list
+      #   linkerd-version                   asks https://versioncheck.linkerd.io for the
+      #                                     latest Linkerd version (needs outgoing internet
+      #                                     access, else only a warning is logged)
+      #   linkerd-existence                 control plane configuration, pods and replica
+      #                                     sets; cluster networks contain all nodes, pods
+      #                                     and services
+      #   linkerd-config                    namespace, RBAC, service accounts and webhooks of
+      #                                     the control plane
+      #   linkerd-identity                  trust anchors and identity issuer certificate
+      #   linkerd-webhooks-and-apisvc-tls   certificates of the webhooks
+      #   control-plane-version             version of the control plane
+      #   linkerd-control-plane-proxy       proxies of the control plane
+      #   linkerd-ha-checks                 replicas of a high-availability control plane.
+      #                                     Needs linkerd-existence or linkerd-config
+      #   linkerd-data-plane                proxies in `dataPlaneNamespace`; also watches
+      #                                     pods, services and endpoints of all namespaces
+      #   linkerd-identity-data-plane       proxy certificates in `dataPlaneNamespace`
+      #   linkerd-cni-plugin                CNI plugin in `cniNamespace`
+      #   linkerd-extension-checks          namespaces of Linkerd extensions
+      # Versions are compared with `linkerd-version`; the Checker is not a Linkerd CLI, so the
+      # CLI version checks always log a warning. The permissions for these categories are in
+      # templates/rbac.yaml.
       checks:
         - kubernetes-api
         - kubernetes-version
         - linkerd-version
-#        - linkerd-control-plane-proxy
         - linkerd-config
         - linkerd-identity
         - linkerd-existence
         - linkerd-webhooks-and-apisvc-tls
-#        - linkerd-ha-checks
-#        - linkerd-data-plane
-#        - linkerd-identity-data-plane
-#        - linkerd-opaque-ports-definition
-#        - control-plane-version
-#        - linkerd-opaque-ports-definition
+      # The Checker also accepts `output` here; it is not used.
+      # Failed runs in a row that are still reported as healthy. Default: 0. Example:
+      #   retry: { maxRetries: 2 }
+
+  # ---------------------------------------------------------------------------
+  # healthchecks: additional health check endpoints.
+  # ---------------------------------------------------------------------------
+
+  # Each entry is one more endpoint with its own checks, with the keys and defaults of
+  # `healthcheck`, for example a quick check for a load balancer next to the full check of
+  # `healthcheck`. Each entry needs `enabled: true` and its own `endpoint`; the default
+  # `/healthz` is already taken by `healthcheck`. `name` and `maskURLs` of an entry are not
+  # used: the endpoint is named `<healthcheck.name>-<index>`, and `healthcheck.maskURLs`
+  # applies to all endpoints. Example:
+  #   healthchecks:
+  #     - enabled: true
+  #       endpoint: /healthz/kubernetes
+  #       refreshDuration: 10s
+  #       kubernetes:
+  #         enabled: true
+  #         resources:
+  #           - name: readiness
+  #             url: /readyz
+  #             checks:
+  #               - { type: Equal, source: ResponseStatus, value: "200 OK" }
+  healthchecks: []
+
+  # ---------------------------------------------------------------------------
+  # versions: endpoint with the versions of the services.
+  # ---------------------------------------------------------------------------
+
+  # Collects the build information of other services: on every request, the Checker calls
+  # the `url` of each resource (HTTP GET, all at once) and answers with HTTP 200 and a JSON
+  # object: per resource `name`, its `url`, a `status` of `OK` or `NOT OK`, and the answer
+  # as `result` or the reason as `error`. The Checker's own build information is added
+  # under its `application.name`. Each `url` must answer with a JSON document, such as the
+  # `/version` endpoint of the status server of OpenKCM services:
+  #   {"version":"v1.9.0","sha":"0e07…","buildTime":"…",…}
+  versions:
+    # -- Serve this endpoint. Default: false.
+    enabled: false
+    # -- Path of the endpoint on the `http` port. Default: `/versions`.
+    endpoint: /versions
+    # -- Timeout of each call. Default: 5s.
+    # timeout: 5s
+    # -- Services to ask, each with `name` (its key in the answer) and `url`. Example:
+    #   resources:
+    #     - name: cmk
+    #       url: http://cmk.services.svc.cluster.local:8888/version
+    #     - name: registry
+    #       url: http://registry.services.svc.cluster.local:8888/version
+    resources:
+      - name: cmk
+        url: http://cmk.services.svc.cluster.local:8888/version
+
+  # ---------------------------------------------------------------------------
+  # status: status server for the probes, version and metrics.
+  # ---------------------------------------------------------------------------
+
+  # A small HTTP server next to the health check endpoints. Kubernetes calls its probe
+  # endpoints to decide whether a pod is alive and ready for traffic, so it must stay
+  # enabled. It also serves the build version and, with Prometheus enabled, the metrics.
+
+  status:
+    # -- Serve the status endpoints (`/probe/liveness`, `/probe/readiness`, `/version`
+    # and, if enabled, `/metrics` and `/debug/pprof/`). Needed by the probes.
+    # Default: false.
+    enabled: true
+    # -- Listen address of the status server. Must match the `http-status`
+    # container port. Default: `:8888`.
+    address: :8888
+    # -- Serve Go profiling endpoints (`/debug/pprof/`) on the status port, without
+    # authentication. Keep false in production; enable it only for troubleshooting.
+    profiling: false
+
+  # ---------------------------------------------------------------------------
+  # logger: logs on standard output.
+  # ---------------------------------------------------------------------------
+
+  # The Checker logs every request with its result, failed Linkerd checks and its errors to
+  # standard output, where the log collection of the cluster picks them up. These settings
+  # control the level of detail, the format and field names, and the masking of personal
+  # data.
+
+  logger:
+    # -- Log level: `trace`, `debug`, `info`, `warn` or `error`; other values mean `info`.
+    # `debug` and `trace` log request details; use them only for troubleshooting.
+    # Default: `info`.
+    level: info
+    # -- Log format: `json` or `text`. Default: `json`.
+    format: json
+    # Further settings, with their defaults:
+    #   source: false                # add the source file and line to each log record
+    #   formatter:
+    #     time:
+    #       type: unix               # `unix` (a number, see precision) or `pattern` (text)
+    #       precision: 1us           # unit of the Unix time: 1ns, 1us, 1ms or 1s
+    #       pattern: "Mon Jan 02 15:04:05 -0700 2006"
+    #                                # Go time layout, used with `type: pattern`. Times are
+    #                                # written in UTC
+    #     fields:                    # names of the fields of a log record
+    #       time: time
+    #       error: error
+    #       level: info              # the default writes `"info":"INFO"`; set `level` to
+    #                                # write `"level":"INFO"`
+    #       message: msg
+    #       otel: { traceId: traceId, spanId: spanId }
+    #       masking:                 # no masking by default. Example:
+    #         pii: [email, ip-address]     # string values keep their first 4 characters
+    #         other: { jwt-token: "*****" } # replace the whole value
+
+  # ---------------------------------------------------------------------------
+  # telemetry: OpenTelemetry export of logs, traces and metrics.
+  # ---------------------------------------------------------------------------
+
+  # Exports traces, metrics and logs to an OpenTelemetry collector, or serves the metrics for
+  # Prometheus, to monitor the Checker. The Checker records one trace span per request and
+  # the metrics `http.request_count` and `http.duration` (milliseconds) per endpoint. Without
+  # it, nothing is exported; the logs on standard output are not affected.
+
+  # OpenTelemetry export (OTLP) of logs, traces and metrics. Each signal has:
+  #   enabled    export this signal. Default: false
+  #   protocol   `grpc` or `http`
+  #   host       collector endpoint as host:port, without scheme or path; value reference,
+  #              e.g. otel-collector:4317 (grpc) or otel-collector:4318 (http)
+  #   url        URL path, used with `http`. Empty: /v1/traces and /v1/metrics; logs have no
+  #              default, set `url: /v1/logs`
+  #   secretRef  connection security, **required** for an enabled signal. With `grpc`:
+  #              insecure, api-token, basic or mtls. With `http`: insecure, api-token or
+  #              mtls. Use mtls or api-token in production:
+  #                { type: insecure }               # no TLS
+  #                { type: api-token, apiToken: <value reference> }
+  #                                                 # TLS; header Authorization: Api-Token …
+  #                type: basic                      # grpc only. TLS; Authorization: Basic …
+  #                basic:
+  #                  username: <value reference>
+  #                  password: <value reference>
+  #                type: mtls                       # TLS with a client certificate
+  #                mtls:
+  #                  cert: <value reference>        # client certificate (PEM)
+  #                  certKey: <value reference>     # its private key (PEM)
+  #                  serverCa: <value reference>    # CA that signed the collector
+  #                                                 # certificate. Optional
+  #                  rootCAs: [<value reference>]   # additional trusted CAs. Optional
+  #                  attributes:
+  #                    serverName: …                # expected server name, if it differs
+  #                                                 # from `host`. Optional
+  #              api-token and basic, and mtls without serverCa and rootCAs, trust the CA
+  #              certificates of the container image.
+  # Files of the examples below (PEM formats, Secret and mounting: see extraVolumes):
+  #   /etc/otel/tls.crt      client certificate, then its intermediate CAs (PEM)
+  #   /etc/otel/tls.key      its private key, unencrypted (PEM)
+  #   /etc/otel/ca.crt       CA certificates (PEM). The collector certificate must be issued
+  #   /etc/otel/root-ca.crt  by one of them and be valid for the host name of `host`, or for
+  #                          `serverName` if set
+  #   /etc/otel/api-token    only the token, for example `<token>`
+  #   /etc/otel/password     only the password
+  #   /etc/otel/otel.json    a JSON document whose string field `jsonPath` selects, for
+  #                          example { "token": "<token>" } for `jsonPath: "$.token"`
+  # Token and password files are used as they are, a trailing newline included: create
+  # them without one.
+  # An enabled signal needs `protocol`, `host` and `secretRef`; metrics for Prometheus need
+  # none of them.
+  # `dynatraceOneAgent: true` adds the metadata of a Dynatrace OneAgent on the node to the
+  # exported data. Default: false.
+  # Example: traces over gRPC with mTLS, metrics and logs over HTTP:
+  #   telemetry:
+  #     traces:
+  #       enabled: true
+  #       protocol: grpc
+  #       host: { source: embedded, value: otel-collector.observability:4317 }
+  #       secretRef:
+  #         type: mtls
+  #         mtls:
+  #           cert: { source: file, file: { path: /etc/otel/tls.crt, format: binary } }
+  #           certKey: { source: file, file: { path: /etc/otel/tls.key, format: binary } }
+  #           serverCa: { source: file, file: { path: /etc/otel/ca.crt, format: binary } }
+  #     metrics:
+  #       enabled: true
+  #       protocol: http
+  #       host: { source: env, env: OTEL_HOST }
+  #       url: /v1/metrics
+  #       secretRef:
+  #         type: api-token
+  #         apiToken: { source: file, file: { path: /etc/otel/api-token, format: binary } }
+  #     logs:
+  #       enabled: true
+  #       protocol: http
+  #       host: { source: env, env: OTEL_HOST }
+  #       url: /v1/logs
+  #       secretRef: { type: insecure }
+  # Example: basic authentication and an API token over gRPC, metrics for Prometheus:
+  #   telemetry:
+  #     dynatraceOneAgent: true
+  #     traces:
+  #       enabled: true
+  #       protocol: grpc
+  #       host: { source: env, env: OTEL_HOST }
+  #       secretRef:
+  #         type: basic
+  #         basic:
+  #           username: { source: env, env: OTEL_USERNAME }
+  #           password: { source: file, file: { path: /etc/otel/password, format: binary } }
+  #     logs:
+  #       enabled: true
+  #       protocol: grpc
+  #       host: { source: env, env: OTEL_HOST }
+  #       secretRef:
+  #         type: api-token
+  #         apiToken:
+  #           source: file
+  #           file: { path: /etc/otel/otel.json, format: json, jsonPath: "$.token" }
+  #     metrics:
+  #       enabled: true
+  #       prometheus: { enabled: true }
+  # Example: mTLS over HTTP with additional CAs and another server name:
+  #   telemetry:
+  #     traces:
+  #       enabled: true
+  #       protocol: http
+  #       host: { source: embedded, value: otel-collector.observability:4318 }
+  #       secretRef:
+  #         type: mtls
+  #         mtls:
+  #           cert: { source: file, file: { path: /etc/otel/tls.crt, format: binary } }
+  #           certKey: { source: file, file: { path: /etc/otel/tls.key, format: binary } }
+  #           rootCAs:
+  #             - { source: file, file: { path: /etc/otel/root-ca.crt, format: binary } }
+  #           attributes: { serverName: otel-collector.example.com }
+  telemetry:
+    logs:
+      # -- Export logs over OTLP.
+      enabled: false
+      # -- OTLP protocol: `grpc` or `http`.
+      protocol: http
+      # -- Collector endpoint; value reference. Read here from the variable
+      # `OTEL_HOST`, which you can set in `extraEnvs`.
+      host:
+        source: env
+        env: OTEL_HOST
+      # -- Connection security; see above.
+      secretRef:
+        type: insecure
+    traces:
+      # -- Export traces over OTLP.
+      enabled: false
+      # -- OTLP protocol: `grpc` or `http`.
+      protocol: http
+      # -- Collector endpoint; value reference.
+      host:
+        source: env
+        env: OTEL_HOST
+      # -- Connection security; see above.
+      secretRef:
+        type: insecure
+    metrics:
+      # -- Export metrics: over OTLP, or for Prometheus (see `prometheus`).
+      enabled: false
+      # -- OTLP protocol: `grpc` or `http`.
+      protocol: http
+      # -- Collector endpoint; value reference.
+      host:
+        source: env
+        env: OTEL_HOST
+      # -- Connection security; see above.
+      secretRef:
+        type: insecure
+      prometheus:
+        # -- Serve the metrics for Prometheus on the status port at `/metrics` instead of
+        # sending them over OTLP. Needs `metrics.enabled: true`.
+        enabled: false

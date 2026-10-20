@@ -1,0 +1,61 @@
+The OpenKCM Checker is deployed as {{ include "checker.fullname" . }} in namespace {{ include "checker.namespace" . }}.
+{{- $cfg := .Values.config }}
+{{- $healthchecks := list }}
+{{- with $cfg.healthcheck }}{{ $healthchecks = append $healthchecks . }}{{ end }}
+{{- range $cfg.healthchecks }}{{ $healthchecks = append $healthchecks . }}{{ end }}
+{{- $paths := list }}
+{{- $apiChecks := false }}
+{{- $linkerdChecks := false }}
+{{- range $hc := $healthchecks }}
+{{- if $hc.enabled }}
+{{- $paths = append $paths ($hc.endpoint | default "/healthz") }}
+{{- if dig "kubernetes" "enabled" false $hc }}{{ $apiChecks = true }}{{ end }}
+{{- if dig "linkerd" "enabled" false $hc }}{{ $apiChecks = true }}{{ $linkerdChecks = true }}{{ end }}
+{{- end }}
+{{- end }}
+{{- if dig "versions" "enabled" false $cfg }}
+{{- $paths = append $paths (dig "versions" "endpoint" "/versions" $cfg) }}
+{{- end }}
+{{- with .Values.service.ports }}
+{{- $port := (index . 0).port }}
+
+Endpoints (cluster internal):
+{{- range $paths }}
+  http://{{ include "checker.fullname" $ }}.{{ include "checker.namespace" $ }}.svc:{{ $port }}{{ . }}
+{{- end }}
+{{- end }}
+Configuration: ConfigMap {{ include "checker.configMapName" . }}
+
+Check the pods:
+  kubectl --namespace {{ include "checker.namespace" . }} get pods -l app.kubernetes.io/instance={{ .Release.Name }},app.kubernetes.io/name={{ include "checker.name" . }}
+{{- with $paths }}
+
+Call the first endpoint from your machine:
+  kubectl --namespace {{ include "checker.namespace" $ }} port-forward service/{{ include "checker.fullname" $ }} 8080:http
+  curl -s http://localhost:8080{{ first . }}
+{{- end }}
+{{- $warnings := list }}
+{{- if ne (len $paths) (len (uniq $paths)) }}
+{{- $warnings = append $warnings (printf "config: the endpoints of healthcheck, healthchecks and versions do not all have their own path (%s): the Checker does not start. Give each endpoint its own path." (join ", " $paths)) }}
+{{- end }}
+{{- if and $apiChecks (not .Values.serviceAccount.automount) }}
+{{- $warnings = append $warnings "serviceAccount.automount is false: the kubernetes and linkerd checks cannot call the Kubernetes API and fail." }}
+{{- end }}
+{{- if and $linkerdChecks (not .Values.rbac.create) }}
+{{- $warnings = append $warnings "rbac.create is false: grant the ServiceAccount the permissions of templates/rbac.yaml yourself, otherwise the linkerd checks fail." }}
+{{- end }}
+{{- if not (dig "status" "enabled" false $cfg) }}
+{{- $warnings = append $warnings "config.status.enabled is false: the probes fail and Kubernetes restarts the pods. Enable it." }}
+{{- end }}
+{{- if dig "status" "profiling" false $cfg }}
+{{- $warnings = append $warnings "config.status.profiling is true: profiling endpoints are served without authentication. Switch it off in production." }}
+{{- end }}
+{{- if $warnings }}
+
+WARNINGS:
+{{- range $warnings }}
+  - {{ . }}
+{{- end }}
+{{- end }}
+
+Documentation: https://github.com/openkcm/checker/tree/main/charts/checker

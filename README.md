@@ -9,7 +9,16 @@ It is designed with modularity in mind, enabling easy extension to support addit
 
 ## Requirements and Setup
 
-*Insert a short description what is required to get your project running...*
+Deploy the Checker to Kubernetes with the Helm chart in [charts/checker](charts/checker): its
+[README](charts/checker/README.md) describes the installation, and its
+[values.yaml](charts/checker/values.yaml) documents every setting of the Checker, with
+examples. Release images are published as `ghcr.io/openkcm/checker/images/checker`, and the
+chart as `oci://ghcr.io/openkcm/charts/checker`.
+
+To run the Checker locally, build it with `make build` and start it in a directory with a
+`config.yaml`, for example the one in this repository. Run the unit tests with `make test`,
+and the tests of the Helm chart, which need the `helm` command but no cluster, with
+`make helm-test`.
 
 ## Support, Feedback, Contributing
 

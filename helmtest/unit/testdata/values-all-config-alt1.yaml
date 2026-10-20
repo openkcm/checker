@@ -1,0 +1,33 @@
+# Second example of each alternative that values.yaml documents under `config`
+# (TestConfigStrict).
+config:
+  logger:
+    formatter:
+      time:
+        type: pattern
+        pattern: "2006-01-02T15:04:05Z07:00"
+
+  # Example: basic authentication and an API token over gRPC, metrics for Prometheus.
+  telemetry:
+    dynatraceOneAgent: true
+    traces:
+      enabled: true
+      protocol: grpc
+      host: { source: env, env: OTEL_HOST }
+      secretRef:
+        type: basic
+        basic:
+          username: { source: env, env: OTEL_USERNAME }
+          password: { source: file, file: { path: /etc/otel/password, format: binary } }
+    logs:
+      enabled: true
+      protocol: grpc
+      host: { source: env, env: OTEL_HOST }
+      secretRef:
+        type: api-token
+        apiToken:
+          source: file
+          file: { path: /etc/otel/otel.json, format: json, jsonPath: "$.token" }
+    metrics:
+      enabled: true
+      prometheus: { enabled: true }

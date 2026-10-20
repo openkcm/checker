@@ -66,7 +66,7 @@ healthcheck:
       - name: livez-verbose
         url: /livez?verbose
         checks:
-          - type: Exact #oneof: Contains, RegularExpression, Prefix, Suffix, Equal
+          - type: Equal #oneof: Contains, RegularExpression, Prefix, Suffix, Equal
             source: ResponseStatus #oneof: ResponseBody, ResponseStatus
             value: "200 OK"
   linkerd:
