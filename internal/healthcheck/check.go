@@ -76,10 +76,7 @@ func (ch *CachedResponses) processResources(
 
 			resp, respStatus := verifyResource(ctx, rc)
 
-			value, _ := resultCollector.Data.Load(cfg.Tag)
-			l, _ := value.([]*Response)
-			l = append(l, resp)
-			resultCollector.Data.Store(cfg.Tag, l)
+			resultCollector.appendResponse(cfg.Tag, resp)
 
 			retryStatus := ch.updateRetryState(
 				h.Retry.MaxRetries,
