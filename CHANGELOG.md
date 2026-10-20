@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.3.3](https://github.com/openkcm/checker/compare/v0.3.2...v0.3.3) (2026-10-20)
+
+
+### Bug Fixes
+
+* CxONE findings ([#178](https://github.com/openkcm/checker/issues/178)) ([34e2cfe](https://github.com/openkcm/checker/commit/34e2cfe7b11accf252df523f9444e9d89cf0ad80))
+* **deps:** bump distroless/static-debian12 from `1b7b9f0` to `afa5c87` ([#205](https://github.com/openkcm/checker/issues/205)) ([78a5bbb](https://github.com/openkcm/checker/commit/78a5bbbc846c3ba760c6092b6668a6157d814527))
+* **deps:** bump distroless/static-debian12 from `a932952` to `d093aa3` ([#173](https://github.com/openkcm/checker/issues/173)) ([e214049](https://github.com/openkcm/checker/commit/e2140498f681cd39fedc859b5490e731b6426ac6))
+* **deps:** bump distroless/static-debian12 from `aef9602` to `1b7b9f0` ([#189](https://github.com/openkcm/checker/issues/189)) ([90e2da1](https://github.com/openkcm/checker/commit/90e2da10a6f9d944a903aabd16939e68e8cb89ec))
+* **deps:** bump distroless/static-debian12 from `d093aa3` to `aef9602` ([#182](https://github.com/openkcm/checker/issues/182)) ([f2efe0f](https://github.com/openkcm/checker/commit/f2efe0f0982c4cf6a5965269770bf8d2f3083981))
+* **deps:** bump github.com/openkcm/common-sdk from 1.19.1 to 1.19.2 in the gomod-group group ([#209](https://github.com/openkcm/checker/issues/209)) ([d00865c](https://github.com/openkcm/checker/commit/d00865c6bb3da3e1391badd6fab94a8120037cf5))
+* **deps:** bump gobwas/glob and golang/groupcache ([#211](https://github.com/openkcm/checker/issues/211)) ([caab9d2](https://github.com/openkcm/checker/commit/caab9d24fc6185e752837a9ba03b4022e0c4ad7a))
+* **deps:** bump golang.org/x/crypto from 0.55.0 to 0.57.0 ([#208](https://github.com/openkcm/checker/issues/208)) ([9d52e97](https://github.com/openkcm/checker/commit/9d52e97c45fe3284480434199f8ed43d0d26284d))
+* **deps:** bump google.golang.org/grpc from 1.83.0 to 1.83.2 ([#207](https://github.com/openkcm/checker/issues/207)) ([2a844dc](https://github.com/openkcm/checker/commit/2a844dc74d055de35e0c990b024953558dbe2e8d))
+* **deps:** bump k8s.io/client-go from 0.36.3 to 0.36.4 in the gomod-group group across 1 directory ([#198](https://github.com/openkcm/checker/issues/198)) ([269e2fe](https://github.com/openkcm/checker/commit/269e2fed3680e4b0f798c491fe56efb115e1a0a2))
+* **deps:** bump the gomod-group group across 1 directory with 5 updates ([#187](https://github.com/openkcm/checker/issues/187)) ([5dba26d](https://github.com/openkcm/checker/commit/5dba26d65e5507ed190dbaf33e74ad87c80e9945))
+* **deps:** bump the gomod-group group across 1 directory with 5 updates ([#206](https://github.com/openkcm/checker/issues/206)) ([da0a943](https://github.com/openkcm/checker/commit/da0a943a95d29f763d7ae01f3946f7bee6344a54))
+* **deps:** bump the gomod-group group across 1 directory with 5 updates ([#214](https://github.com/openkcm/checker/issues/214)) ([8627a51](https://github.com/openkcm/checker/commit/8627a513279fec7becd7d221648b846f163a7df0))
+* **deps:** bump the gomod-group group across 1 directory with 6 updates ([#176](https://github.com/openkcm/checker/issues/176)) ([20c3b20](https://github.com/openkcm/checker/commit/20c3b20db5b65ffcb35ceba88cfa8bf152bc1b1d))
+* **deps:** bump the gomod-group group with 2 updates ([#210](https://github.com/openkcm/checker/issues/210)) ([46e4c23](https://github.com/openkcm/checker/commit/46e4c23215486e8b45ee61a50d328e4eea1a4151))
+* disable exhaustruct_v5 linter ([#200](https://github.com/openkcm/checker/issues/200)) ([161e5bf](https://github.com/openkcm/checker/commit/161e5bf6d437092805ca56c08d20d9356d384cde))
+* **healthcheck:** initialize k8s client before running linkerd checks ([#199](https://github.com/openkcm/checker/issues/199)) ([38d2c14](https://github.com/openkcm/checker/commit/38d2c14277eba66671e4cdeb49dbcb2d11bc49af))
+* set toolchain to use latest Go version ([#175](https://github.com/openkcm/checker/issues/175)) ([036029d](https://github.com/openkcm/checker/commit/036029dbc5012f73d236e121dfc8ecd3fddcd6b8))
+* some test failures ([3c2817b](https://github.com/openkcm/checker/commit/3c2817b4c4876f45baee73f5094f53da3ef4aa29))
+* values and the documentation ([c9d9c00](https://github.com/openkcm/checker/commit/c9d9c0007d87f53e97d5987e0c24de648253bbd7))
+* vulnerabilities in golang.org/x/* ([#177](https://github.com/openkcm/checker/issues/177)) ([85be2c2](https://github.com/openkcm/checker/commit/85be2c23491d24aee757b690ad54f0780b83e542))
+
 ## [0.3.2](https://github.com/openkcm/checker/compare/v0.3.1...v0.3.2) (2026-05-18)
 
 
