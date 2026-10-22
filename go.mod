@@ -2,7 +2,7 @@ module github.com/openkcm/checker
 
 go 1.27
 
-toolchain go1.27.1
+toolchain go1.27.3
 
 require (
 	github.com/linkerd/linkerd2 v0.5.1-0.20260812204504-2f74727508b7 //edge-26.8.2
