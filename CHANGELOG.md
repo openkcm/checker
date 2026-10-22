@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.4](https://github.com/openkcm/checker/compare/v0.3.3...v0.3.4) (2026-10-22)
+
+
+### Bug Fixes
+
+* **deps:** bump Go toolchain to 1.27.3 to address security CVEs ([#216](https://github.com/openkcm/checker/issues/216)) ([f85aecb](https://github.com/openkcm/checker/commit/f85aecba9b9f1f5ff85bce00ac744b90d27f8ad5))
+* **deps:** bump golang.org/x/net to v0.61.0 to address CVEs ([#217](https://github.com/openkcm/checker/issues/217)) ([3b8e260](https://github.com/openkcm/checker/commit/3b8e2607b37835d3f7696c85a03863fd5de9d012))
+
 ## [0.3.3](https://github.com/openkcm/checker/compare/v0.3.2...v0.3.3) (2026-10-20)
 
 
